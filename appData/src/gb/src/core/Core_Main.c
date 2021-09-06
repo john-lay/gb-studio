@@ -72,7 +72,7 @@ void lcd_update() {
     if(WY_REG == 0x0) {
       HIDE_SPRITES;
     }
-    
+
     // If UI is open cause lcd interupt
     // to fire again when first line of
     // window is being drawn
@@ -83,8 +83,24 @@ void lcd_update() {
     // If window is covering entire scan line
     // can just hide all sprites until next frame
     HIDE_SPRITES;
-    LYC_REG = 0x0;
-  }
+    LYC_REG = 0x0;    
+  } 
+}
+
+void ShowZeldaHud() {
+  // HIDE_BKG;
+  // HIDE_SPRITES;
+//   LYC_REG = 0x08; //  Fire LCD Interupt on the 8th scan line
+
+  DISPLAY_OFF;
+  unsigned char zeldasAdventureHudMap[] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0E,
+                                           0x0E, 0x0E, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C,
+                                           0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C};
+  set_win_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
+  move_win(7, 120);
+
+  SHOW_WIN;
+  DISPLAY_ON;
 }
 
 int core_start() {
@@ -174,25 +190,25 @@ int core_start() {
   ScriptRunnerInit();
   ActorsInit();
 
-  while (1) {
+  while (1) {      
     while (state_running) {
 
-    /* Game Core Loop Start *********************************/
+      /* Game Core Loop Start *********************************/
 
-    if (!vbl_count) {
-      wait_vbl_done();
-    }
-    
-    delta_time = vbl_count == 1u ? 0u : 1u;
-    vbl_count = 0;
+      if (!vbl_count) {
+        wait_vbl_done();
+      }
 
-    last_joy = joy;
-    joy = joypad();
-    if ((joy & INPUT_DPAD) != (last_joy & INPUT_DPAD)) {
-      recent_joy = joy & ~last_joy;
-    }
+      delta_time = vbl_count == 1u ? 0u : 1u;
+      vbl_count = 0;
 
-    if (seedRand) {
+      last_joy = joy;
+      joy = joypad();
+      if ((joy & INPUT_DPAD) != (last_joy & INPUT_DPAD)) {
+        recent_joy = joy & ~last_joy;
+      }
+
+      if (seedRand) {
       if(seedRand == 2){
         // Seed on first button press
         if (joy) {
@@ -208,50 +224,50 @@ int core_start() {
       }
     }
 
-    PUSH_BANK(1);
+      PUSH_BANK(1);
 
-    UpdateCamera();
-    RefreshScroll_b();
-    UpdateActors();
-    UpdateProjectiles_b();
-    UIOnInteract_b();
-    UIUpdate_b();
+      UpdateCamera();
+      RefreshScroll_b();
+      UpdateActors();
+      UpdateProjectiles_b();
+      UIOnInteract_b();
+      UIUpdate_b();
+ 
+      if (!script_ctxs[0].script_ptr_bank && !ui_block) {
+        PUSH_BANK(stateBanks[scene_type]);
+        updateFuncs[scene_type]();
+        POP_BANK;
+        HandleInputScripts();
+      }
 
-    if (!script_ctxs[0].script_ptr_bank && !ui_block) {
-      PUSH_BANK(stateBanks[scene_type]);
-      updateFuncs[scene_type]();
+      ScriptTimerUpdate();
+
+      ScriptRestoreCtx(0);
+
+      if (!ui_block) {
+        // Run background scripts
+        ScriptRestoreCtx(1);
+        ScriptRestoreCtx(2);
+        ScriptRestoreCtx(3);
+        ScriptRestoreCtx(4);
+        ScriptRestoreCtx(5);
+        ScriptRestoreCtx(6);
+        ScriptRestoreCtx(7);
+        ScriptRestoreCtx(8);
+        ScriptRestoreCtx(9);
+        ScriptRestoreCtx(10);
+        ScriptRestoreCtx(11);
+
+        // Reposition actors and check for collisions
+        ActorRunCollisionScripts();
+      }
+
+      game_time++;
+
       POP_BANK;
-      HandleInputScripts();
+      
+      /* Game Core Loop End ***********************************/
     }
-
-    ScriptTimerUpdate();
-
-    ScriptRestoreCtx(0);
-
-    if (!ui_block) {
-      // Run background scripts
-      ScriptRestoreCtx(1);
-      ScriptRestoreCtx(2);
-      ScriptRestoreCtx(3);
-      ScriptRestoreCtx(4);
-      ScriptRestoreCtx(5);
-      ScriptRestoreCtx(6);
-      ScriptRestoreCtx(7);
-      ScriptRestoreCtx(8);
-      ScriptRestoreCtx(9);
-      ScriptRestoreCtx(10);
-      ScriptRestoreCtx(11);
-
-      // Reposition actors and check for collisions
-      ActorRunCollisionScripts();
-    }
-
-    game_time++;
-
-    POP_BANK;
-
-    /* Game Core Loop End ***********************************/
-  }
 
 
     //  Switch Scene
@@ -286,17 +302,17 @@ int core_start() {
     move_sprite(1, 0, 0);
     // Force Clear invoke stack
     script_stack_ptr = 0;
-    // Force all palettes to update on switch
-    #ifdef CGB
-      palette_update_mask = 0x3F;
-    #endif
+// Force all palettes to update on switch
+#ifdef CGB
+    palette_update_mask = 0x3F;
+#endif
 
     UIInit();
     LoadScene(current_state);
 
     // Run scene type init function
     PUSH_BANK(stateBanks[scene_type]);
-    startFuncs[scene_type]();
+    startFuncs[scene_type]();  // run start func for new type
     POP_BANK;
 
     game_time = 0;
@@ -314,12 +330,17 @@ int core_start() {
     UpdateCamera();
     RefreshScroll();
     UpdateActors();
-    UIUpdate();
+    UIUpdate();   
+    
+    ShowZeldaHud();
+    // if (stateBanks[scene_type] == ZELDAS_ADVENTURE_SCENE_TYPE) {
+    //   ShowZeldaHud();
+    // }
 
     // Wait for fade in to complete
     while (fade_running) {
       wait_vbl_done();
       FadeUpdate();
     }
-  }
+  }  // while(1)
 }
