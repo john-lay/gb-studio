@@ -231,7 +231,7 @@ int core_start() {
       UpdateActors();
       UpdateProjectiles_b();
       UIOnInteract_b();
-      UIUpdate_b();
+    //   UIUpdate_b(); // prevent the windows layer from disappearing
  
       if (!script_ctxs[0].script_ptr_bank && !ui_block) {
         PUSH_BANK(stateBanks[scene_type]);
