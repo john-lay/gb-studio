@@ -21,6 +21,7 @@
 #include "gbt_player.h"
 #include "data_ptrs.h"
 #include "main.h"
+#include "states/ZeldasAdventure.h"
 
 UBYTE game_time = 0;
 UBYTE seedRand = 2;
@@ -33,6 +34,168 @@ INT16 old_scroll_x, old_scroll_y;
 UINT8 music_mute_frames = 0;
 
 extern SCENE_STATE scene_stack;
+
+unsigned char zeldasAdventureHudMap[] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0E,
+                                           0x0E, 0x0E, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C,
+                                           0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C};
+// for 3 hearts the starting point for rendering is tile 16
+const UINT8 HEART_START_DRAW = 16;
+// pointer to GB Studio variables $00 and $01
+UINT8 *cachedHealth = (UINT8 *)0xccf6;
+UINT8 *health = (UINT8 *)0xccf7;
+
+/**
+ * Takes a number and returns the associated tile image
+ */
+UINT8 GetNumberTile(UINT8 number)
+{
+    switch (number)
+    {
+    case 0:
+        return ZELDA_HUD_0;
+        break;
+    case 1:
+        return ZELDA_HUD_1;
+        break;
+    case 2:
+        return ZELDA_HUD_2;
+        break;
+    case 3:
+        return ZELDA_HUD_3;
+        break;
+    case 4:
+        return ZELDA_HUD_4;
+        break;
+    case 5:
+        return ZELDA_HUD_5;
+        break;
+    case 6:
+        return ZELDA_HUD_6;
+        break;
+    case 7:
+        return ZELDA_HUD_7;
+        break;
+    case 8:
+        return ZELDA_HUD_8;
+        break;
+    case 9:
+        return ZELDA_HUD_9;
+        break;
+
+    default:
+        return ZELDA_HUD_BLANK;
+        break;
+    }
+}
+
+/**
+ * Draws the HUD rupee counter for a given value
+ */
+void CalculateRupees(char *hud, UINT8 rupees)
+{
+    int count = 1;
+    while (rupees > 0)
+    {
+        int digit = rupees % 10;
+        // set the hundreds
+        if (count == 3)
+        {
+            hud[2] = GetNumberTile(digit);
+        }
+        // set the tens
+        if (count == 2)
+        {
+            hud[3] = GetNumberTile(digit);
+        }
+        // set the units
+        if (count == 1)
+        {
+            hud[4] = GetNumberTile(digit);
+        }
+
+        rupees /= 10;
+        count++;
+    }
+}
+
+/**
+ * Draws the HUD hearts/health values
+ */
+void CalculateHearts(char *hud, UINT8 maxHearts, UINT8 health)
+{
+    // max hearts is 14
+    // max health is 28 (2 half hearts)
+    int healthCounter = health;
+    int startDraw = HEART_START_DRAW - maxHearts + 3;
+
+    for (int i = 6; i < 19; i++)
+    {
+        if (i < startDraw)
+        {
+            hud[i] = ZELDA_HUD_BLANK;
+        }
+        else if (healthCounter > 2)
+        {
+            hud[i] = ZELDA_HUD_HEART_FULL;
+            healthCounter -= 2;
+            continue;
+        }
+        else if (healthCounter == 2)
+        {
+            hud[i] = ZELDA_HUD_HEART_FULL;
+            healthCounter -= 2;
+            continue;
+        }
+        else if (healthCounter == 1)
+        {
+            hud[i] = ZELDA_HUD_HEART_HALF;
+            healthCounter--;
+            continue;
+        }
+        else
+        {
+            hud[i] = ZELDA_HUD_HEART_EMPTY;
+        }
+    }
+
+    // special case for last heart as we nornally leave the last tile empty
+    if (maxHearts == 14)
+    {
+        if (health == 28)
+        {
+            hud[19] = ZELDA_HUD_HEART_FULL;
+        }
+        else if (health == 27)
+        {
+            hud[19] = ZELDA_HUD_HEART_HALF;
+        }
+        else
+        {
+            hud[19] = ZELDA_HUD_HEART_EMPTY;
+        }
+    }
+    else
+    {
+        hud[19] = ZELDA_HUD_BLANK;
+    }
+}
+
+/**
+ * Updates the rupee and hearts HUD based on provided values
+ */
+void CalculateHud(char *hud, UINT8 rupees, UINT8 maxHearts, UINT8 health)
+{
+    // set the rupee count
+    CalculateRupees(hud, rupees);
+
+    // set the hearts
+    CalculateHearts(hud, maxHearts, health);
+}
+
+void UpdateZeldaHud() {
+  CalculateHud(zeldasAdventureHudMap, 321, 4 , *health);
+  set_bkg_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
+}
 
 void SetScene(UINT16 state) {
   state_running = 0;
@@ -83,24 +246,14 @@ void lcd_update() {
     // If window is covering entire scan line
     // can just hide all sprites until next frame
     HIDE_SPRITES;
-    LYC_REG = 0x0;    
+    LYC_REG = 0x0;
   } 
-}
 
-void ShowZeldaHud() {
-  // HIDE_BKG;
-  // HIDE_SPRITES;
-//   LYC_REG = 0x08; //  Fire LCD Interupt on the 8th scan line
-
-  DISPLAY_OFF;
-  unsigned char zeldasAdventureHudMap[] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0E,
-                                           0x0E, 0x0E, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C,
-                                           0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C};
-  set_win_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
-  move_win(7, 120);
-
-  SHOW_WIN;
-  DISPLAY_ON;
+  if(*cachedHealth != *health)
+  {
+     *cachedHealth = *health;
+     UpdateZeldaHud();
+  }
 }
 
 int core_start() {
@@ -189,6 +342,7 @@ int core_start() {
   FadeInit();
   ScriptRunnerInit();
   ActorsInit();
+  BYTE firstDraw = 1;
 
   while (1) {      
     while (state_running) {
@@ -231,7 +385,7 @@ int core_start() {
       UpdateActors();
       UpdateProjectiles_b();
       UIOnInteract_b();
-    //   UIUpdate_b(); // prevent the windows layer from disappearing
+      UIUpdate_b();
  
       if (!script_ctxs[0].script_ptr_bank && !ui_block) {
         PUSH_BANK(stateBanks[scene_type]);
@@ -332,7 +486,11 @@ int core_start() {
     UpdateActors();
     UIUpdate();   
     
-    ShowZeldaHud();
+    if (firstDraw) {
+        firstDraw = 0;
+       UpdateZeldaHud(); 
+    }
+    
     // if (stateBanks[scene_type] == ZELDAS_ADVENTURE_SCENE_TYPE) {
     //   ShowZeldaHud();
     // }
