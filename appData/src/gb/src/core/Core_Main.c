@@ -41,8 +41,14 @@ unsigned char zeldasAdventureHudMap[] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0
 // for 3 hearts the starting point for rendering is tile 16
 const UINT8 HEART_START_DRAW = 16;
 // pointer to GB Studio variables $00 and $01
-UINT8 *cachedHealth = (UINT8 *)0xccf6;
-UINT8 *health = (UINT8 *)0xccf7;
+UINT8 *cachedHealth = (UINT8 *)0xccfc;
+UINT8 *health = (UINT8 *)0xccfd;
+// pointer to GB Studio variables $02 and $03
+UINT8 *cachedMaxHearts = (UINT8 *)0xccfe;
+UINT8 *maxHearts = (UINT8 *)0xccff;
+// pointer to GB Studio variables $04 and $05
+UINT8 *cachedRupees = (UINT8 *)0xcd00;
+UINT8 *rupees = (UINT8 *)0xcd01;
 
 /**
  * Takes a number and returns the associated tile image
@@ -183,17 +189,21 @@ void CalculateHearts(char *hud, UINT8 maxHearts, UINT8 health)
 /**
  * Updates the rupee and hearts HUD based on provided values
  */
-void CalculateHud(char *hud, UINT8 rupees, UINT8 maxHearts, UINT8 health)
+void CalculateHud(char *hud, UINT8 rupees, UINT8 maxHearts, UINT8 health, BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChanged)
 {
     // set the rupee count
-    CalculateRupees(hud, rupees);
+    if(rupeesChanged) {    
+        CalculateRupees(hud, rupees);
+    }
 
     // set the hearts
-    CalculateHearts(hud, maxHearts, health);
+    if(heartsChanged || maxHeartsChanged) { 
+        CalculateHearts(hud, maxHearts, health);
+    }
 }
 
-void UpdateZeldaHud() {
-  CalculateHud(zeldasAdventureHudMap, 321, 4 , *health);
+void UpdateZeldaHud(BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChanged) {
+  CalculateHud(zeldasAdventureHudMap, *rupees, *maxHearts, *health, heartsChanged, maxHeartsChanged, rupeesChanged);
   set_bkg_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
 }
 
@@ -249,10 +259,16 @@ void lcd_update() {
     LYC_REG = 0x0;
   } 
 
-  if(*cachedHealth != *health)
+  BYTE heartsChanged = *cachedHealth != *health;
+  BYTE maxHeartsChanged = *cachedMaxHearts != *maxHearts;
+  BYTE rupeesChanged = *cachedRupees != *rupees;
+
+  if(heartsChanged || maxHeartsChanged || rupeesChanged)
   {
      *cachedHealth = *health;
-     UpdateZeldaHud();
+     *cachedMaxHearts = *maxHearts;
+     *cachedRupees = *rupees;
+     UpdateZeldaHud(heartsChanged, maxHeartsChanged, rupeesChanged);
   }
 }
 
@@ -488,7 +504,7 @@ int core_start() {
     
     if (firstDraw) {
         firstDraw = 0;
-       UpdateZeldaHud(); 
+       UpdateZeldaHud(1, 1, 1);
     }
     
     // if (stateBanks[scene_type] == ZELDAS_ADVENTURE_SCENE_TYPE) {
