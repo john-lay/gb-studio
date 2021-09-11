@@ -207,6 +207,10 @@ void UpdateZeldaHud(BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChange
   set_bkg_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
 }
 
+BYTE IsZeldasAdventureTypeScene() {
+    return scene_type == ZELDAS_ADVENTURE_SCENE_TYPE;
+}
+
 void SetScene(UINT16 state) {
   state_running = 0;
   next_state = state;
@@ -259,16 +263,18 @@ void lcd_update() {
     LYC_REG = 0x0;
   } 
 
-  BYTE heartsChanged = *cachedHealth != *health;
-  BYTE maxHeartsChanged = *cachedMaxHearts != *maxHearts;
-  BYTE rupeesChanged = *cachedRupees != *rupees;
+  if(IsZeldasAdventureTypeScene()) {
+    BYTE heartsChanged = *cachedHealth != *health;
+    BYTE maxHeartsChanged = *cachedMaxHearts != *maxHearts;
+    BYTE rupeesChanged = *cachedRupees != *rupees;
 
-  if(heartsChanged || maxHeartsChanged || rupeesChanged)
-  {
-     *cachedHealth = *health;
-     *cachedMaxHearts = *maxHearts;
-     *cachedRupees = *rupees;
-     UpdateZeldaHud(heartsChanged, maxHeartsChanged, rupeesChanged);
+    if(heartsChanged || maxHeartsChanged || rupeesChanged)
+    {
+        *cachedHealth = *health;
+        *cachedMaxHearts = *maxHearts;
+        *cachedRupees = *rupees;
+        UpdateZeldaHud(heartsChanged, maxHeartsChanged, rupeesChanged);
+    }
   }
 }
 
@@ -502,14 +508,10 @@ int core_start() {
     UpdateActors();
     UIUpdate();   
     
-    if (firstDraw) {
+    if (IsZeldasAdventureTypeScene() && firstDraw) {
         firstDraw = 0;
-       UpdateZeldaHud(1, 1, 1);
+        UpdateZeldaHud(1, 1, 1);
     }
-    
-    // if (stateBanks[scene_type] == ZELDAS_ADVENTURE_SCENE_TYPE) {
-    //   ShowZeldaHud();
-    // }
 
     // Wait for fade in to complete
     while (fade_running) {

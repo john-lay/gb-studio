@@ -3,7 +3,7 @@
 
 #include <gb/gb.h>
 
-#define ZELDAS_ADVENTURE_SCENE_TYPE 5
+#define ZELDAS_ADVENTURE_SCENE_TYPE 6
 
 typedef void (*Void_Func_Void)();
 
