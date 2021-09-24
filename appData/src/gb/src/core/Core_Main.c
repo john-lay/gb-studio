@@ -76,14 +76,14 @@ unsigned char zeldasAdventureHudMap[20] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0
 // for 3 hearts the starting point for rendering is tile 16
 const UINT8 HEART_START_DRAW = 16;
 // pointer to GB Studio variables $00 and $01
-UINT8 *cachedHealth = (UINT8 *)0xcd2a;
-UINT8 *health = (UINT8 *)0xcd2b;
+UINT8 *cachedHealth = (UINT8 *)0xcd0c;
+UINT8 *health = (UINT8 *)0xcd0d;
 // pointer to GB Studio variables $02 and $03
-UINT8 *cachedMaxHearts = (UINT8 *)0xcd2c;
-UINT8 *maxHearts = (UINT8 *)0xcd2d;
+UINT8 *cachedMaxHearts = (UINT8 *)0xcd0e;
+UINT8 *maxHearts = (UINT8 *)0xcd0f;
 // pointer to GB Studio variables $04 and $05
-UINT8 *cachedRupees = (UINT8 *)0xcd2e;
-UINT8 *rupees = (UINT8 *)0xcd2f;
+UINT8 *cachedRupees = (UINT8 *)0xcd10;
+UINT8 *rupees = (UINT8 *)0xcd11;
 
 /**
  * Takes a number and returns the associated tile image
