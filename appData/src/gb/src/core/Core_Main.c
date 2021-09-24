@@ -121,7 +121,6 @@ UINT8 GetNumberTile(UINT8 number)
     case 9:
         return ZELDA_HUD_9;
         break;
-
     default:
         return ZELDA_HUD_BLANK;
         break;
@@ -133,6 +132,10 @@ UINT8 GetNumberTile(UINT8 number)
  */
 void CalculateRupees(char *hud, UINT8 rupees)
 {
+    if(rupees < 100) hud[2] = ZELDA_HUD_0;
+    if(rupees < 10) hud[3] = ZELDA_HUD_0;
+    if(rupees < 1) hud[4] = ZELDA_HUD_0;
+
     UINT8 count = 1;
     while (rupees > 0)
     {
