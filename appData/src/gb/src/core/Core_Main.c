@@ -99,10 +99,10 @@ UINT8 GetNumberTile(UINT8 number)
  */
 void CalculateRupees(char *hud, UINT8 rupees)
 {
-    int count = 1;
+    UINT8 count = 1;
     while (rupees > 0)
     {
-        int digit = rupees % 10;
+        UINT8 digit = rupees % 10;
         // set the hundreds
         if (count == 3)
         {
@@ -131,10 +131,10 @@ void CalculateHearts(char *hud, UINT8 maxHearts, UINT8 health)
 {
     // max hearts is 14
     // max health is 28 (2 half hearts)
-    int healthCounter = health;
-    int startDraw = HEART_START_DRAW - maxHearts + 3;
+    UINT8 healthCounter = health;
+    UINT8 startDraw = HEART_START_DRAW - maxHearts + 3;
 
-    for (int i = 6; i < 19; i++)
+    for (UINT8 i = 6; i < 19; i++)
     {
         if (i < startDraw)
         {
