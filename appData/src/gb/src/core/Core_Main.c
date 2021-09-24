@@ -51,23 +51,6 @@ UINT8 ZELDA_HUD_HEART_EMPTY = 0xff;
 UINT8 ZELDA_HUD_HEART_HALF = 0xff;
 UINT8 ZELDA_HUD_HEART_FULL = 0xff;
 
-// TODO: try to remove these intermediatary pointers as they will likely be used as GB Studio game variables
-UINT8 *ptrBlank = (UINT8 *)0xcd40;
-UINT8 *ptr1 = (UINT8 *)0xcd41;
-UINT8 *ptr2 = (UINT8 *)0xcd42;
-UINT8 *ptr3 = (UINT8 *)0xcd43;
-UINT8 *ptr4 = (UINT8 *)0xcd44;
-UINT8 *ptr5 = (UINT8 *)0xcd45;
-UINT8 *ptr6 = (UINT8 *)0xcd46;
-UINT8 *ptr7 = (UINT8 *)0xcd47;
-UINT8 *ptr8 = (UINT8 *)0xcd48;
-UINT8 *ptr9 = (UINT8 *)0xcd49;
-UINT8 *ptr0 = (UINT8 *)0xcd4a;
-UINT8 *ptrRupee = (UINT8 *)0xcd4b;
-UINT8 *ptrHeartEmpty = (UINT8 *)0xcd4c;
-UINT8 *ptrHeartHalf = (UINT8 *)0xcd4d;
-UINT8 *ptrHeartFull = (UINT8 *)0xcd4e;
-
 BYTE ZELDA_TILES_FOUND = 0;
 
 unsigned char zeldasAdventureHudMap[20] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0E,
@@ -277,76 +260,31 @@ void InitZeldaHud()
                 && ZELDA_HUD_HEART_EMPTY != 0xff
                 && ZELDA_HUD_HEART_HALF != 0xff
                 && ZELDA_HUD_HEART_FULL != 0xff) {
-                    found = 1;
-                }
+                found = 1;
+            }
 
-            if(ZELDA_HUD_BLANK == 0xff) {
-                *ptrBlank = *(UINT8 *)0x9800;
-                ZELDA_HUD_BLANK = *ptrBlank;
-            }
-            if(ZELDA_HUD_1 == 0xff) {
-                *ptr1 = *(UINT8 *)0x9801; 
-                ZELDA_HUD_1 = *ptr1;
-            }
-            if(ZELDA_HUD_2 == 0xff) {
-                *ptr2 = *(UINT8 *)0x9802; 
-                ZELDA_HUD_2 = *ptr2;
-            }
-            if(ZELDA_HUD_3 == 0xff) {
-                *ptr3 = *(UINT8 *)0x9803; 
-                ZELDA_HUD_3 = *ptr3;
-            }
-            if(ZELDA_HUD_4 == 0xff) {
-                *ptr4 = *(UINT8 *)0x9804; 
-                ZELDA_HUD_4 = *ptr4;
-            }
-            if(ZELDA_HUD_5 == 0xff) {
-                *ptr5 = *(UINT8 *)0x9805; 
-                ZELDA_HUD_5 = *ptr5;
-            }
-            if(ZELDA_HUD_6 == 0xff) {
-                *ptr6 = *(UINT8 *)0x9806; 
-                ZELDA_HUD_6 = *ptr6;
-            }
-            if(ZELDA_HUD_7 == 0xff) {
-                *ptr7 = *(UINT8 *)0x9807; 
-                ZELDA_HUD_7 = *ptr7;
-            }
-            if(ZELDA_HUD_8 == 0xff) {
-                *ptr8 = *(UINT8 *)0x9808; 
-                ZELDA_HUD_8 = *ptr8;
-            }
-            if(ZELDA_HUD_9 == 0xff) {
-                *ptr9 = *(UINT8 *)0x9809; 
-                ZELDA_HUD_9 = *ptr9;
-            }
-            if(ZELDA_HUD_0 == 0xff) {
-                *ptr0 = *(UINT8 *)0x980a; 
-                ZELDA_HUD_0 = *ptr0;
-            }
-            if(ZELDA_HUD_RUPEE == 0xff) {
-                *ptrRupee = *(UINT8 *)0x980b; 
-                ZELDA_HUD_RUPEE = *ptrRupee;
-            }
-            if(ZELDA_HUD_HEART_EMPTY == 0xff) {
-                *ptrHeartEmpty = *(UINT8 *)0x980c; 
-                ZELDA_HUD_HEART_EMPTY = *ptrHeartEmpty;
-            }
-            if(ZELDA_HUD_HEART_HALF == 0xff) {
-                *ptrHeartHalf = *(UINT8 *)0x980d; 
-                ZELDA_HUD_HEART_HALF = *ptrHeartHalf;
-            }
-            if(ZELDA_HUD_HEART_FULL == 0xff) {
-                *ptrHeartFull = *(UINT8 *)0x980e; 
-                ZELDA_HUD_HEART_FULL = *ptrHeartFull;
-            }
-        }        
+            if(ZELDA_HUD_BLANK == 0xff) ZELDA_HUD_BLANK = *(UINT8 *)0x9800;
+            if(ZELDA_HUD_1 == 0xff) ZELDA_HUD_1 = *(UINT8 *)0x9801;
+            if(ZELDA_HUD_2 == 0xff) ZELDA_HUD_2 = *(UINT8 *)0x9802;
+            if(ZELDA_HUD_3 == 0xff) ZELDA_HUD_3 = *(UINT8 *)0x9803;
+            if(ZELDA_HUD_4 == 0xff) ZELDA_HUD_4 = *(UINT8 *)0x9804;
+            if(ZELDA_HUD_5 == 0xff) ZELDA_HUD_5 = *(UINT8 *)0x9805;
+            if(ZELDA_HUD_6 == 0xff) ZELDA_HUD_6 = *(UINT8 *)0x9806;
+            if(ZELDA_HUD_7 == 0xff) ZELDA_HUD_7 = *(UINT8 *)0x9807;
+            if(ZELDA_HUD_8 == 0xff) ZELDA_HUD_8 = *(UINT8 *)0x9808;
+            if(ZELDA_HUD_9 == 0xff) ZELDA_HUD_9 = *(UINT8 *)0x9809;
+            if(ZELDA_HUD_0 == 0xff) ZELDA_HUD_0 = *(UINT8 *)0x980a;
+            if(ZELDA_HUD_RUPEE == 0xff) ZELDA_HUD_RUPEE = *(UINT8 *)0x980b;
+            if(ZELDA_HUD_HEART_EMPTY == 0xff) ZELDA_HUD_HEART_EMPTY = *(UINT8 *)0x980c;
+            if(ZELDA_HUD_HEART_HALF == 0xff) ZELDA_HUD_HEART_HALF = *(UINT8 *)0x980d;
+            if(ZELDA_HUD_HEART_FULL == 0xff) ZELDA_HUD_HEART_FULL = *(UINT8 *)0x980e;
+        }
 
-        for(UINT8 i = 0; i < 20; i++) {
-            if(i == 1) {
+        for (UINT8 i = 0; i < 20; i++) {
+            if (i == 1) {
                 zeldasAdventureHudMap[i] = ZELDA_HUD_RUPEE;
             } else {
-            zeldasAdventureHudMap[i] = ZELDA_HUD_BLANK;
+                zeldasAdventureHudMap[i] = ZELDA_HUD_BLANK;
             }
         }
 
