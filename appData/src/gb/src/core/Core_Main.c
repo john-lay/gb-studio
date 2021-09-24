@@ -51,6 +51,7 @@ UINT8 ZELDA_HUD_HEART_EMPTY = 0xff;
 UINT8 ZELDA_HUD_HEART_HALF = 0xff;
 UINT8 ZELDA_HUD_HEART_FULL = 0xff;
 
+// TODO: try to remove these intermediatary pointers as they will likely be used as GB Studio game variables
 UINT8 *ptrBlank = (UINT8 *)0xcd40;
 UINT8 *ptr1 = (UINT8 *)0xcd41;
 UINT8 *ptr2 = (UINT8 *)0xcd42;
@@ -240,7 +241,7 @@ void CalculateHud(char *hud, UINT8 rupees, UINT8 maxHearts, UINT8 health, BYTE h
 }
 
 void UpdateZeldaHud(BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChanged) {
-//   CalculateHud(zeldasAdventureHudMap, *rupees, *maxHearts, *health, heartsChanged, maxHeartsChanged, rupeesChanged);
+  CalculateHud(zeldasAdventureHudMap, *rupees, *maxHearts, *health, heartsChanged, maxHeartsChanged, rupeesChanged);
   set_bkg_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
 }
 
@@ -253,7 +254,7 @@ BYTE IsZeldasAdventureTypeScene() {
  * As their location in tile memory can change we need to find and store their location before 
  * attempting to draw the HUD
  */
-void FindTilesInVram(char *hud)
+void InitZeldaHud()
 {
     if(!ZELDA_TILES_FOUND) {
         BYTE found = 0;
@@ -341,26 +342,15 @@ void FindTilesInVram(char *hud)
             }
         }        
 
-        hud[0] = ZELDA_HUD_BLANK;
-        hud[1] = ZELDA_HUD_HEART_FULL;
-        hud[2] = ZELDA_HUD_HEART_HALF;
-        hud[3] = ZELDA_HUD_HEART_EMPTY;
-        hud[4] = ZELDA_HUD_RUPEE;
-        hud[5] = ZELDA_HUD_1;
-        hud[6] = ZELDA_HUD_2;
-        hud[7] = ZELDA_HUD_3;
-        hud[8] = ZELDA_HUD_4;
-        hud[9] = ZELDA_HUD_3;
-        hud[10] = ZELDA_HUD_5;
-        hud[11] = ZELDA_HUD_6;
-        hud[12] = ZELDA_HUD_7;
-        hud[13] = ZELDA_HUD_8;
-        hud[14] = ZELDA_HUD_9;
-        hud[15] = ZELDA_HUD_0;
-        hud[16] = ZELDA_HUD_RUPEE;
-        hud[17] = ZELDA_HUD_HEART_EMPTY;
-        hud[18] = ZELDA_HUD_HEART_HALF;
-        hud[19] = ZELDA_HUD_HEART_FULL;
+        for(UINT8 i = 0; i < 20; i++) {
+            if(i == 1) {
+                zeldasAdventureHudMap[i] = ZELDA_HUD_RUPEE;
+            } else {
+            zeldasAdventureHudMap[i] = ZELDA_HUD_BLANK;
+            }
+        }
+
+        // initialise the HUD for the first time
         UpdateZeldaHud(1, 1, 1);
 
         ZELDA_TILES_FOUND = 1;
@@ -661,10 +651,8 @@ int core_start() {
     UpdateCamera();
     RefreshScroll();
     UpdateActors();
-    UIUpdate();   
-    
-    FindTilesInVram(zeldasAdventureHudMap);
-    // UpdateZeldaHud(1, 1, 1);
+    UIUpdate();
+    InitZeldaHud();
 
     // Wait for fade in to complete
     while (fade_running) {
