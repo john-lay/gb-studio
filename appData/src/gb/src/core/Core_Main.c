@@ -590,7 +590,10 @@ int core_start() {
     RefreshScroll();
     UpdateActors();
     UIUpdate();
-    InitZeldaHud();
+
+    if(IsZeldasAdventureTypeScene()) {
+        InitZeldaHud();
+    }
 
     // Wait for fade in to complete
     while (fade_running) {
