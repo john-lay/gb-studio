@@ -287,12 +287,12 @@ void InitZeldaHud()
                 zeldasAdventureHudMap[i] = ZELDA_HUD_BLANK;
             }
         }
-
-        // initialise the HUD for the first time
-        UpdateZeldaHud(1, 1, 1);
-
+        
         ZELDA_TILES_FOUND = 1;
     } 
+
+    // initialise the HUD for the first time
+    UpdateZeldaHud(1, 1, 1);
 }
 
 void SetScene(UINT16 state) {
