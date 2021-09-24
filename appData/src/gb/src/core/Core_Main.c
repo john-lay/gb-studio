@@ -35,7 +35,41 @@ UINT8 music_mute_frames = 0;
 
 extern SCENE_STATE scene_stack;
 
-unsigned char zeldasAdventureHudMap[] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0E,
+UINT8 ZELDA_HUD_BLANK = 0xff;
+UINT8 ZELDA_HUD_1 = 0xff;
+UINT8 ZELDA_HUD_2 = 0xff;
+UINT8 ZELDA_HUD_3 = 0xff;
+UINT8 ZELDA_HUD_4 = 0xff;
+UINT8 ZELDA_HUD_5 = 0xff;
+UINT8 ZELDA_HUD_6 = 0xff;
+UINT8 ZELDA_HUD_7 = 0xff;
+UINT8 ZELDA_HUD_8 = 0xff;
+UINT8 ZELDA_HUD_9 = 0xff;
+UINT8 ZELDA_HUD_0 = 0xff;
+UINT8 ZELDA_HUD_RUPEE = 0xff;
+UINT8 ZELDA_HUD_HEART_EMPTY = 0xff;
+UINT8 ZELDA_HUD_HEART_HALF = 0xff;
+UINT8 ZELDA_HUD_HEART_FULL = 0xff;
+
+UINT8 *ptrBlank = (UINT8 *)0xcd40;
+UINT8 *ptr1 = (UINT8 *)0xcd41;
+UINT8 *ptr2 = (UINT8 *)0xcd42;
+UINT8 *ptr3 = (UINT8 *)0xcd43;
+UINT8 *ptr4 = (UINT8 *)0xcd44;
+UINT8 *ptr5 = (UINT8 *)0xcd45;
+UINT8 *ptr6 = (UINT8 *)0xcd46;
+UINT8 *ptr7 = (UINT8 *)0xcd47;
+UINT8 *ptr8 = (UINT8 *)0xcd48;
+UINT8 *ptr9 = (UINT8 *)0xcd49;
+UINT8 *ptr0 = (UINT8 *)0xcd4a;
+UINT8 *ptrRupee = (UINT8 *)0xcd4b;
+UINT8 *ptrHeartEmpty = (UINT8 *)0xcd4c;
+UINT8 *ptrHeartHalf = (UINT8 *)0xcd4d;
+UINT8 *ptrHeartFull = (UINT8 *)0xcd4e;
+
+BYTE ZELDA_TILES_FOUND = 0;
+
+unsigned char zeldasAdventureHudMap[20] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0x0E,
                                            0x0E, 0x0E, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C,
                                            0x0C, 0x0C, 0x0C, 0x0C, 0x0C, 0x0C};
 // for 3 hearts the starting point for rendering is tile 16
@@ -203,12 +237,131 @@ void CalculateHud(char *hud, UINT8 rupees, UINT8 maxHearts, UINT8 health, BYTE h
 }
 
 void UpdateZeldaHud(BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChanged) {
-  CalculateHud(zeldasAdventureHudMap, *rupees, *maxHearts, *health, heartsChanged, maxHeartsChanged, rupeesChanged);
+//   CalculateHud(zeldasAdventureHudMap, *rupees, *maxHearts, *health, heartsChanged, maxHeartsChanged, rupeesChanged);
   set_bkg_tiles(0, 0, 20, 1, zeldasAdventureHudMap);
 }
 
 BYTE IsZeldasAdventureTypeScene() {
     return scene_type == ZELDAS_ADVENTURE_SCENE_TYPE;
+}
+
+/**
+ * All Zelda Adventure scenes have the necessary HUD elements in the first row of the scene
+ * As their location in tile memory can change we need to find and store their location before 
+ * attempting to draw the HUD
+ */
+void FindTilesInVram(char *hud)
+{
+    if(!ZELDA_TILES_FOUND) {
+        BYTE found = 0;
+
+        // for some reason copying the tile numbers from tile RAM is very incosistent
+        // so we need to retry until we've got 'em all!
+        while(found == 0) {
+            if(ZELDA_HUD_BLANK != 0xff 
+                && ZELDA_HUD_1 != 0xff
+                && ZELDA_HUD_2 != 0xff
+                && ZELDA_HUD_3 != 0xff
+                && ZELDA_HUD_4 != 0xff
+                && ZELDA_HUD_5 != 0xff
+                && ZELDA_HUD_6 != 0xff
+                && ZELDA_HUD_7 != 0xff
+                && ZELDA_HUD_8 != 0xff
+                && ZELDA_HUD_9 != 0xff
+                && ZELDA_HUD_0 != 0xff
+                && ZELDA_HUD_RUPEE != 0xff
+                && ZELDA_HUD_HEART_EMPTY != 0xff
+                && ZELDA_HUD_HEART_HALF != 0xff
+                && ZELDA_HUD_HEART_FULL != 0xff) {
+                    found = 1;
+                }
+
+            if(ZELDA_HUD_BLANK == 0xff) {
+                *ptrBlank = *(UINT8 *)0x9800;
+                ZELDA_HUD_BLANK = *ptrBlank;
+            }
+            if(ZELDA_HUD_1 == 0xff) {
+                *ptr1 = *(UINT8 *)0x9801; 
+                ZELDA_HUD_1 = *ptr1;
+            }
+            if(ZELDA_HUD_2 == 0xff) {
+                *ptr2 = *(UINT8 *)0x9802; 
+                ZELDA_HUD_2 = *ptr2;
+            }
+            if(ZELDA_HUD_3 == 0xff) {
+                *ptr3 = *(UINT8 *)0x9803; 
+                ZELDA_HUD_3 = *ptr3;
+            }
+            if(ZELDA_HUD_4 == 0xff) {
+                *ptr4 = *(UINT8 *)0x9804; 
+                ZELDA_HUD_4 = *ptr4;
+            }
+            if(ZELDA_HUD_5 == 0xff) {
+                *ptr5 = *(UINT8 *)0x9805; 
+                ZELDA_HUD_5 = *ptr5;
+            }
+            if(ZELDA_HUD_6 == 0xff) {
+                *ptr6 = *(UINT8 *)0x9806; 
+                ZELDA_HUD_6 = *ptr6;
+            }
+            if(ZELDA_HUD_7 == 0xff) {
+                *ptr7 = *(UINT8 *)0x9807; 
+                ZELDA_HUD_7 = *ptr7;
+            }
+            if(ZELDA_HUD_8 == 0xff) {
+                *ptr8 = *(UINT8 *)0x9808; 
+                ZELDA_HUD_8 = *ptr8;
+            }
+            if(ZELDA_HUD_9 == 0xff) {
+                *ptr9 = *(UINT8 *)0x9809; 
+                ZELDA_HUD_9 = *ptr9;
+            }
+            if(ZELDA_HUD_0 == 0xff) {
+                *ptr0 = *(UINT8 *)0x980a; 
+                ZELDA_HUD_0 = *ptr0;
+            }
+            if(ZELDA_HUD_RUPEE == 0xff) {
+                *ptrRupee = *(UINT8 *)0x980b; 
+                ZELDA_HUD_RUPEE = *ptrRupee;
+            }
+            if(ZELDA_HUD_HEART_EMPTY == 0xff) {
+                *ptrHeartEmpty = *(UINT8 *)0x980c; 
+                ZELDA_HUD_HEART_EMPTY = *ptrHeartEmpty;
+            }
+            if(ZELDA_HUD_HEART_HALF == 0xff) {
+                *ptrHeartHalf = *(UINT8 *)0x980d; 
+                ZELDA_HUD_HEART_HALF = *ptrHeartHalf;
+            }
+            if(ZELDA_HUD_HEART_FULL == 0xff) {
+                *ptrHeartFull = *(UINT8 *)0x980e; 
+                ZELDA_HUD_HEART_FULL = *ptrHeartFull;
+            }
+        }        
+
+        hud[0] = ZELDA_HUD_BLANK;
+        hud[1] = ZELDA_HUD_HEART_FULL;
+        hud[2] = ZELDA_HUD_HEART_HALF;
+        hud[3] = ZELDA_HUD_HEART_EMPTY;
+        hud[4] = ZELDA_HUD_RUPEE;
+        hud[5] = ZELDA_HUD_1;
+        hud[6] = ZELDA_HUD_2;
+        hud[7] = ZELDA_HUD_3;
+        hud[8] = ZELDA_HUD_4;
+        hud[9] = ZELDA_HUD_3;
+        hud[10] = ZELDA_HUD_5;
+        hud[11] = ZELDA_HUD_6;
+        hud[12] = ZELDA_HUD_7;
+        hud[13] = ZELDA_HUD_8;
+        hud[14] = ZELDA_HUD_9;
+        hud[15] = ZELDA_HUD_0;
+        hud[16] = ZELDA_HUD_RUPEE;
+        hud[17] = ZELDA_HUD_HEART_EMPTY;
+        hud[18] = ZELDA_HUD_HEART_HALF;
+        hud[19] = ZELDA_HUD_HEART_FULL;
+        UpdateZeldaHud(1, 1, 1);
+
+        ZELDA_TILES_FOUND = 1;
+    } 
 }
 
 void SetScene(UINT16 state) {
@@ -364,7 +517,6 @@ int core_start() {
   FadeInit();
   ScriptRunnerInit();
   ActorsInit();
-  BYTE firstDraw = 1;
 
   while (1) {      
     while (state_running) {
@@ -494,7 +646,7 @@ int core_start() {
     game_time = 0;
     old_scroll_x = scroll_x;
     old_scroll_y = scroll_y;
-
+   
     // Fade in new scene
     DISPLAY_ON;
     FadeIn();
@@ -508,10 +660,8 @@ int core_start() {
     UpdateActors();
     UIUpdate();   
     
-    if (IsZeldasAdventureTypeScene() && firstDraw) {
-        firstDraw = 0;
-        UpdateZeldaHud(1, 1, 1);
-    }
+    FindTilesInVram(zeldasAdventureHudMap);
+    // UpdateZeldaHud(1, 1, 1);
 
     // Wait for fade in to complete
     while (fade_running) {
