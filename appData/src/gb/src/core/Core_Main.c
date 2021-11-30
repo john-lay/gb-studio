@@ -233,16 +233,42 @@ BYTE IsZeldasAdventureTypeScene() {
 }
 
 /**
+ * The reference to the known Zelda HUD tiles gets cached and if the references
+ * in tile memory get shifted, it causes a garbled HUD to be drawn
+ */
+void InvalidateZeldaHudCache() {
+    ZELDA_HUD_BLANK = 0xff;
+    ZELDA_HUD_1 = 0xff;
+    ZELDA_HUD_2 = 0xff;
+    ZELDA_HUD_3 = 0xff;
+    ZELDA_HUD_4 = 0xff;
+    ZELDA_HUD_5 = 0xff;
+    ZELDA_HUD_6 = 0xff;
+    ZELDA_HUD_7 = 0xff;
+    ZELDA_HUD_8 = 0xff;
+    ZELDA_HUD_9 = 0xff;
+    ZELDA_HUD_0 = 0xff;
+    ZELDA_HUD_RUPEE = 0xff;
+    ZELDA_HUD_HEART_EMPTY = 0xff;
+    ZELDA_HUD_HEART_HALF = 0xff;
+    ZELDA_HUD_HEART_FULL = 0xff;
+
+    ZELDA_TILES_FOUND = 0;
+}
+
+/**
  * All Zelda Adventure scenes have the necessary HUD elements in the first row of the scene
  * As their location in tile memory can change we need to find and store their location before 
  * attempting to draw the HUD
  */
 void InitZeldaHud()
 {
+    InvalidateZeldaHudCache();
+    
     if(!ZELDA_TILES_FOUND) {
         BYTE found = 0;
 
-        // for some reason copying the tile numbers from tile RAM is very incosistent
+        // for some reason copying the tile numbers from tile RAM is very inconsistent
         // so we need to retry until we've got 'em all!
         while(found == 0) {
             if(ZELDA_HUD_BLANK != 0xff 
