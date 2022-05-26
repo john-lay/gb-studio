@@ -130,8 +130,10 @@ typedef struct projectile_def_t
     bounding_box_t bounds;
     far_ptr_t sprite;
     uint8_t life_time;
-    uint8_t base_tile;
-    animation_t animations[4];
+    uint8_t base_tile;    
+    uint8_t frame;
+    uint8_t frame_start;
+    uint8_t frame_end;
     uint8_t anim_tick;
     uint8_t move_speed;
     uint16_t initial_offset;
@@ -144,9 +146,6 @@ typedef struct projectile_t
     bool anim_noloop          : 1;  
     upoint16_t pos;
     point16_t delta_pos;
-    uint8_t frame;
-    uint8_t frame_start;
-    uint8_t frame_end;    
     projectile_def_t def;
     struct projectile_t *next;
 } projectile_t;

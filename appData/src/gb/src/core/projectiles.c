@@ -50,11 +50,11 @@ void projectiles_update() NONBANKED {
     
         // Check reached animation tick frame
         if ((game_time & projectile->def.anim_tick) == 0) {
-            projectile->frame++;
+            projectile->def.frame++;
             // Check reached end of animation
-            if (projectile->frame == projectile->frame_end) {
+            if (projectile->def.frame == projectile->def.frame_end) {
                 if (!projectile->anim_noloop) {
-                    projectile->frame = projectile->frame_start;
+                    projectile->def.frame = projectile->def.frame_start;
                 }
             }
         }
@@ -96,7 +96,7 @@ void projectiles_update() NONBANKED {
         spritesheet_t *sprite = projectile->def.sprite.ptr;
     
         allocated_hardware_sprites += move_metasprite(
-            *(sprite->metasprites + projectile->frame),
+            *(sprite->metasprites + projectile->def.frame),
             projectile->def.base_tile,
             allocated_hardware_sprites,
             screen_x,
@@ -133,7 +133,7 @@ void projectiles_render() NONBANKED {
         spritesheet_t *sprite = projectile->def.sprite.ptr;
     
         allocated_hardware_sprites += move_metasprite(
-            *(sprite->metasprites + projectile->frame),
+            *(sprite->metasprites + projectile->def.frame),
             projectile->def.base_tile,
             allocated_hardware_sprites,
             screen_x,
@@ -152,20 +152,20 @@ void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
     if (projectile) {
         memcpy(&projectile->def, &projectile_defs[index], sizeof(projectile_def_t));
 
-        // Set correct projectile frames based on angle
-        UBYTE dir = DIR_UP;
-        if (angle > 224) {
-            dir = DIR_UP;
-        } else if (angle > 160) {
-            dir = DIR_LEFT;
-        } else if (angle > 96) {
-            dir = DIR_DOWN;
-        } else if (angle > 32) {
-            dir = DIR_RIGHT;
-        }
-        projectile->frame = projectile->def.animations[dir].start;
-        projectile->frame_start = projectile->def.animations[dir].start;
-        projectile->frame_end = projectile->def.animations[dir].end + 1;
+        // // Set correct projectile frames based on angle
+        // UBYTE dir = DIR_UP;
+        // if (angle > 224) {
+        //     dir = DIR_UP;
+        // } else if (angle > 160) {
+        //     dir = DIR_LEFT;
+        // } else if (angle > 96) {
+        //     dir = DIR_DOWN;
+        // } else if (angle > 32) {
+        //     dir = DIR_RIGHT;
+        // }
+        // projectile->frame = projectile->def.animations[dir].start;
+        // projectile->frame_start = projectile->def.animations[dir].start;
+        // projectile->frame_end = projectile->def.animations[dir].end + 1;
 
         UINT16 initial_offset = projectile->def.initial_offset;
         projectile->pos.x = pos->x;
