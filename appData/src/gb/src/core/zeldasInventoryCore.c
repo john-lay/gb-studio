@@ -5,20 +5,20 @@
 
 #ifdef CGB
     // pointer to GB Studio variables $06 - $12
-    UINT16 *_inventoryInteraction = (UINT16 *)0xcb2c;
-    UINT16 *_inventoryFlags1 = (UINT16 *)0xcb2e;
-    UINT16 *_inventoryFlags2 = (UINT16 *)0xcb30;
-    UINT16 *_inventoryFlags3 = (UINT16 *)0xcb32;
-    UINT16 *_equipped = (UINT16 *)0xcb34;
-    UINT16 *_overworldFlags = (UINT16 *)0xcb36;
+    UINT16 *_inventoryInteraction = (UINT16 *)0xcaeb;
+    UINT16 *_inventoryFlags1 = (UINT16 *)0xcaed;
+    UINT16 *_inventoryFlags2 = (UINT16 *)0xcaef;
+    UINT16 *_inventoryFlags3 = (UINT16 *)0xcaf1;
+    UINT16 *_equipped = (UINT16 *)0xcaf3;
+    UINT16 *_overworldFlags = (UINT16 *)0xcaf5;
 #else
     // pointer to GB Studio variables $06 - $12
-    UINT16 *_inventoryInteraction = (UINT16 *)0xcb2b;
-    UINT16 *_inventoryFlags1 = (UINT16 *)0xcb2d;
-    UINT16 *_inventoryFlags2 = (UINT16 *)0xcb2f;
-    UINT16 *_inventoryFlags3 = (UINT16 *)0xcb31;
-    UINT16 *_equipped = (UINT16 *)0xcb33;
-    UINT16 *_overworldFlags = (UINT16 *)0xcb35;
+    UINT16 *_inventoryInteraction = (UINT16 *)0xcaea;
+    UINT16 *_inventoryFlags1 = (UINT16 *)0xcaec;
+    UINT16 *_inventoryFlags2 = (UINT16 *)0xcaee;
+    UINT16 *_inventoryFlags3 = (UINT16 *)0xcaf0;
+    UINT16 *_equipped = (UINT16 *)0xcaf2;
+    UINT16 *_overworldFlags = (UINT16 *)0xcaf4;
 #endif
 
 const UINT8 maxItemsOnScreen = 6;

@@ -25,24 +25,24 @@ unsigned char zeldasAdventureHudMap[20] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0
 
 #ifdef CGB
     // pointer to GB Studio variables $00 and $01
-    UINT8 *cachedHealth = (UINT8 *)0xcb20;
-    UINT8 *health = (UINT8 *)0xcb22;
+    UINT8 *cachedHealth = (UINT8 *)0xcadf;
+    UINT8 *health = (UINT8 *)0xcae1;
     // pointer to GB Studio variables $02 and $03
-    UINT8 *cachedMaxHearts = (UINT8 *)0xcb24;
-    UINT8 *maxHearts = (UINT8 *)0xcb26;
+    UINT8 *cachedMaxHearts = (UINT8 *)0xcae3;
+    UINT8 *maxHearts = (UINT8 *)0xcae5;
     // pointer to GB Studio variables $04 and $05
-    UINT8 *cachedRupees = (UINT8 *)0xcb28;
-    UINT8 *rupees = (UINT8 *)0xcb2a;
+    UINT8 *cachedRupees = (UINT8 *)0xcae7;
+    UINT8 *rupees = (UINT8 *)0xcae9;
 #else
     // pointer to GB Studio variables $00 and $01
-    UINT8 *cachedHealth = (UINT8 *)0xcb1f;
-    UINT8 *health = (UINT8 *)0xcb21;
+    UINT8 *cachedHealth = (UINT8 *)0xcade;
+    UINT8 *health = (UINT8 *)0xcae0;
     // pointer to GB Studio variables $02 and $03
-    UINT8 *cachedMaxHearts = (UINT8 *)0xcb23;
-    UINT8 *maxHearts = (UINT8 *)0xcb25;
+    UINT8 *cachedMaxHearts = (UINT8 *)0xcae2;
+    UINT8 *maxHearts = (UINT8 *)0xcae4;
     // pointer to GB Studio variables $04 and $05
-    UINT8 *cachedRupees = (UINT8 *)0xcb27;
-    UINT8 *rupees = (UINT8 *)0xcb29;
+    UINT8 *cachedRupees = (UINT8 *)0xcae6;
+    UINT8 *rupees = (UINT8 *)0xcae8;
 #endif
     
 
