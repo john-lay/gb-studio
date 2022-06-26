@@ -31,8 +31,8 @@ unsigned char zeldasAdventureHudMap[20] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0
     UINT8 *cachedMaxHearts = (UINT8 *)0xcb24;
     UINT8 *maxHearts = (UINT8 *)0xcb26;
     // pointer to GB Studio variables $04 and $05
-    UINT8 *cachedRupees = (UINT8 *)0xcb28;
-    UINT8 *rupees = (UINT8 *)0xcb2a;
+    UINT16 *cachedRupees = (UINT16 *)0xcb28;
+    UINT16 *rupees = (UINT16 *)0xcb2a;
 #else
     // pointer to GB Studio variables $00 and $01
     UINT8 *cachedHealth = (UINT8 *)0xcb1f;
@@ -41,8 +41,8 @@ unsigned char zeldasAdventureHudMap[20] = {0x00, 0x0B, 0x0A, 0x0A, 0x0A, 0x00, 0
     UINT8 *cachedMaxHearts = (UINT8 *)0xcb23;
     UINT8 *maxHearts = (UINT8 *)0xcb25;
     // pointer to GB Studio variables $04 and $05
-    UINT8 *cachedRupees = (UINT8 *)0xcb27;
-    UINT8 *rupees = (UINT8 *)0xcb29;
+    UINT16 *cachedRupees = (UINT16 *)0xcb27;
+    UINT16 *rupees = (UINT16 *)0xcb29;
 #endif
     
 
@@ -92,16 +92,16 @@ UINT8 GetNumberTile(UINT8 number)
 /**
  * Draws the HUD rupee counter for a given value
  */
-void CalculateRupees(char *hud, UINT8 rupees)
+void CalculateRupees(char *hud, UINT16 rupees)
 {
-    if(rupees < 100) hud[2] = ZELDA_HUD_0;
-    if(rupees < 10) hud[3] = ZELDA_HUD_0;
-    if(rupees < 1) hud[4] = ZELDA_HUD_0;
+    if (rupees < 100) hud[2] = ZELDA_HUD_0;
+    if (rupees < 10) hud[3] = ZELDA_HUD_0;
+    if (rupees < 1) hud[4] = ZELDA_HUD_0;
 
     UINT8 count = 1;
     while (rupees > 0)
     {
-        UINT8 digit = rupees % 10;
+        UINT16 digit = rupees % 10;
         // set the hundreds
         if (count == 3)
         {
@@ -188,15 +188,15 @@ void CalculateHearts(char *hud, UINT8 maxHearts, UINT8 health)
 /**
  * Updates the rupee and hearts HUD based on provided values
  */
-void CalculateHud(char *hud, UINT8 rupees, UINT8 maxHearts, UINT8 health, BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChanged)
+void CalculateHud(char *hud, UINT16 rupees, UINT8 maxHearts, UINT8 health, BYTE heartsChanged, BYTE maxHeartsChanged, BYTE rupeesChanged)
 {
     // set the rupee count
-    if(rupeesChanged) {    
+    if (rupeesChanged) {    
         CalculateRupees(hud, rupees);
     }
 
     // set the hearts
-    if(heartsChanged || maxHeartsChanged) { 
+    if (heartsChanged || maxHeartsChanged) { 
         CalculateHearts(hud, maxHearts, health);
     }
 }
@@ -239,13 +239,13 @@ void InitZeldaHud()
 {
     InvalidateZeldaHudCache();
     
-    if(!ZELDA_TILES_FOUND) {
+    if (!ZELDA_TILES_FOUND) {
         BYTE found = 0;
 
         // for some reason copying the tile numbers from tile RAM is very inconsistent
         // so we need to retry until we've got 'em all!
-        while(found == 0) {
-            if(ZELDA_HUD_BLANK != 0xff 
+        while (found == 0) {
+            if (ZELDA_HUD_BLANK != 0xff 
                 && ZELDA_HUD_1 != 0xff
                 && ZELDA_HUD_2 != 0xff
                 && ZELDA_HUD_3 != 0xff
@@ -263,21 +263,21 @@ void InitZeldaHud()
                 found = 1;
             }
 
-            if(ZELDA_HUD_BLANK == 0xff) ZELDA_HUD_BLANK = *(UINT8 *)0x9800;
-            if(ZELDA_HUD_1 == 0xff) ZELDA_HUD_1 = *(UINT8 *)0x9801;
-            if(ZELDA_HUD_2 == 0xff) ZELDA_HUD_2 = *(UINT8 *)0x9802;
-            if(ZELDA_HUD_3 == 0xff) ZELDA_HUD_3 = *(UINT8 *)0x9803;
-            if(ZELDA_HUD_4 == 0xff) ZELDA_HUD_4 = *(UINT8 *)0x9804;
-            if(ZELDA_HUD_5 == 0xff) ZELDA_HUD_5 = *(UINT8 *)0x9805;
-            if(ZELDA_HUD_6 == 0xff) ZELDA_HUD_6 = *(UINT8 *)0x9806;
-            if(ZELDA_HUD_7 == 0xff) ZELDA_HUD_7 = *(UINT8 *)0x9807;
-            if(ZELDA_HUD_8 == 0xff) ZELDA_HUD_8 = *(UINT8 *)0x9808;
-            if(ZELDA_HUD_9 == 0xff) ZELDA_HUD_9 = *(UINT8 *)0x9809;
-            if(ZELDA_HUD_0 == 0xff) ZELDA_HUD_0 = *(UINT8 *)0x980a;
-            if(ZELDA_HUD_RUPEE == 0xff) ZELDA_HUD_RUPEE = *(UINT8 *)0x980b;
-            if(ZELDA_HUD_HEART_EMPTY == 0xff) ZELDA_HUD_HEART_EMPTY = *(UINT8 *)0x980c;
-            if(ZELDA_HUD_HEART_HALF == 0xff) ZELDA_HUD_HEART_HALF = *(UINT8 *)0x980d;
-            if(ZELDA_HUD_HEART_FULL == 0xff) ZELDA_HUD_HEART_FULL = *(UINT8 *)0x980e;
+            if (ZELDA_HUD_BLANK == 0xff) ZELDA_HUD_BLANK = *(UINT8 *)0x9800;
+            if (ZELDA_HUD_1 == 0xff) ZELDA_HUD_1 = *(UINT8 *)0x9801;
+            if (ZELDA_HUD_2 == 0xff) ZELDA_HUD_2 = *(UINT8 *)0x9802;
+            if (ZELDA_HUD_3 == 0xff) ZELDA_HUD_3 = *(UINT8 *)0x9803;
+            if (ZELDA_HUD_4 == 0xff) ZELDA_HUD_4 = *(UINT8 *)0x9804;
+            if (ZELDA_HUD_5 == 0xff) ZELDA_HUD_5 = *(UINT8 *)0x9805;
+            if (ZELDA_HUD_6 == 0xff) ZELDA_HUD_6 = *(UINT8 *)0x9806;
+            if (ZELDA_HUD_7 == 0xff) ZELDA_HUD_7 = *(UINT8 *)0x9807;
+            if (ZELDA_HUD_8 == 0xff) ZELDA_HUD_8 = *(UINT8 *)0x9808;
+            if (ZELDA_HUD_9 == 0xff) ZELDA_HUD_9 = *(UINT8 *)0x9809;
+            if (ZELDA_HUD_0 == 0xff) ZELDA_HUD_0 = *(UINT8 *)0x980a;
+            if (ZELDA_HUD_RUPEE == 0xff) ZELDA_HUD_RUPEE = *(UINT8 *)0x980b;
+            if (ZELDA_HUD_HEART_EMPTY == 0xff) ZELDA_HUD_HEART_EMPTY = *(UINT8 *)0x980c;
+            if (ZELDA_HUD_HEART_HALF == 0xff) ZELDA_HUD_HEART_HALF = *(UINT8 *)0x980d;
+            if (ZELDA_HUD_HEART_FULL == 0xff) ZELDA_HUD_HEART_FULL = *(UINT8 *)0x980e;
         }
 
         for (UINT8 i = 0; i < 20; i++) {
@@ -297,11 +297,17 @@ void InitZeldaHud()
 
 void CheckForHudRedraw()
 {
+    if (*cachedRupees > 999 || *rupees > 999) 
+    {
+        *cachedRupees = 999;
+        *rupees = 999;
+    }
+
     BYTE heartsChanged = *cachedHealth != *health;
     BYTE maxHeartsChanged = *cachedMaxHearts != *maxHearts;
     BYTE rupeesChanged = *cachedRupees != *rupees;
 
-    if(heartsChanged || maxHeartsChanged || rupeesChanged)
+    if (heartsChanged || maxHeartsChanged || rupeesChanged)
     {
         *cachedHealth = *health;
         *cachedMaxHearts = *maxHearts;
