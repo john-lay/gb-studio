@@ -1,12 +1,8 @@
 import { inputDec, textSpeedDec } from "./helpers";
-import { decHex, decOct, hexDec } from "../helpers/8bit";
+import { decBin, decHex, decOct, hexDec } from "../helpers/8bit";
 import trimlines from "../helpers/trimlines";
 import { is16BitCType } from "../helpers/engineFields";
-import {
-  globalVariableName,
-  localVariableName,
-  tempVariableName,
-} from "../helpers/variables";
+import { localVariableName, tempVariableName } from "../helpers/variables";
 import {
   ActorDirection,
   CustomEvent,
@@ -40,7 +36,6 @@ import {
   mapEvents,
 } from "../helpers/eventSystem";
 import compileEntityEvents from "./compileEntityEvents";
-import { toCSymbol } from "../helpers/cGeneration";
 import {
   isUnionPropertyValue,
   isUnionVariableValue,
@@ -73,9 +68,14 @@ type ScriptBuilderEntityType = "scene" | "actor" | "trigger";
 
 type ScriptBuilderStackVariable = string | number;
 
+type ScriptBuilderVariable = {
+  type: "variable" | "indirect";
+  symbol: string;
+};
+
 interface ScriptBuilderFunctionArgLookup {
-  actor: Dictionary<string>;
-  variable: Dictionary<string>;
+  actor: Dictionary<ScriptBuilderVariable>;
+  variable: Dictionary<ScriptBuilderVariable>;
 }
 
 interface ScriptBuilderOptions {
@@ -430,10 +430,6 @@ export const toProjectileHash = ({
   });
 
 const MAX_DIALOGUE_LINES = 5;
-const CAMERA_LOCK_X = 0x1;
-const CAMERA_LOCK_Y = 0x2;
-const CAMERA_LOCK_XY = 0x3;
-const CAMERA_UNLOCK = 0x0;
 const fadeSpeeds = [0x0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f];
 
 // ------------------------
@@ -666,6 +662,10 @@ class ScriptBuilder {
     this._addCmd("VM_UNLOCK");
   };
 
+  _idle = () => {
+    this._addCmd("VM_IDLE");
+  };
+
   _raiseException = (exception: string, numArgs: number) => {
     this._addCmd("VM_RAISE", exception, numArgs);
   };
@@ -689,6 +689,17 @@ class ScriptBuilder {
   _stackPushInd = (location: ScriptBuilderStackVariable) => {
     this.stackPtr++;
     this._addCmd("VM_PUSH_VALUE_IND", location);
+  };
+
+  _stackPushReference = (
+    location: ScriptBuilderStackVariable,
+    comment?: string
+  ) => {
+    this.stackPtr++;
+    this._addCmd(
+      "VM_PUSH_REFERENCE",
+      location + (comment ? ` ; ${comment}` : "")
+    );
   };
 
   _stackPop = (num: number) => {
@@ -1307,16 +1318,20 @@ class ScriptBuilder {
           if (!arg) {
             throw new Error("Cant find arg");
           }
-          const localRef = this._declareLocal(
-            `text_arg${indirectVars.length}`,
-            1,
-            true
-          );
-          indirectVars.unshift({
-            local: localRef,
-            arg,
-          });
-          usedVariableAliases.push(this._localRef(localRef));
+          if (arg.type === "indirect") {
+            const localRef = this._declareLocal(
+              `text_arg${indirectVars.length}`,
+              1,
+              true
+            );
+            indirectVars.unshift({
+              local: localRef,
+              arg: arg.symbol,
+            });
+            usedVariableAliases.push(this._localRef(localRef));
+          } else {
+            usedVariableAliases.push(arg.symbol);
+          }
         } else {
           usedVariableAliases.push(
             this.getVariableAlias(variable.replace(/^0/g, ""))
@@ -1589,18 +1604,28 @@ class ScriptBuilder {
       "0b01111011", // Channel 4
     ];
 
+    const channelStopInstructions = [
+      "",
+      "0x01, 0b00101000, 0x00,0xc0,      //shut ch1",
+      "0x01, 0b00101001, 0x00,0xc0,      //shut ch2",
+      "0x01, 0b00101010, 0x00,0xc0,      //shut ch3",
+      "0x01, 0b00101011, 0x00,0xc0,      //shut ch4",
+    ];
+
     for (let i = 0; i < frames; i += 4) {
       const len = Math.min(4, frames - i);
       const extraFrames = len * 4 - 1;
       if (i === 0) {
-        output += `    ${decHex((extraFrames << 4) + 1)}, ${
+        output += `${decHex((extraFrames << 4) + 1)}, ${
           channelMasks[channel]
         },${data.map(decHex).join(",")},`;
       } else {
-        output += `    ${decHex(extraFrames << 4)},`;
+        output += `${decHex(extraFrames << 4)},`;
       }
       output += "\n";
     }
+
+    const muteMask = 1 << (channel - 1);
 
     this.writeAsset(
       `sounds/${symbol}.c`,
@@ -1611,11 +1636,28 @@ class ScriptBuilder {
 
 BANKREF(${symbol})
 const uint8_t ${symbol}[] = {
-  ${output}
-  0x01, 0b00101000, 0x00,0xc0,      //shut ch1
-  0x01, 0b00000111,                 //stop
+${output}${channelStopInstructions[channel]}
+0x01, 0b00000111,                 //stop
 };
-void AT(0b00000100) __mute_mask_${symbol};`
+void AT(0b${decBin(muteMask)}) __mute_mask_${symbol};`
+    );
+
+    this.writeAsset(
+      `${symbol}.h`,
+      `#ifndef __${symbol}_INCLUDE__
+#define __${symbol}_INCLUDE__
+
+#include <gbdk/platform.h>
+#include <stdint.h>
+
+#define MUTE_MASK_${symbol} 0b${decBin(muteMask)}
+
+BANKREF_EXTERN(${symbol})
+extern const uint8_t ${symbol}[];
+extern void __mute_mask_${symbol};
+
+#endif
+`
     );
 
     return symbol;
@@ -1721,7 +1763,7 @@ void AT(0b00000100) __mute_mask_${symbol};`
 
   _argRef = (symbol: string, offset = 0): string => {
     if (this.stackPtr === 0 && offset === 0) {
-      return `.${symbol}`;
+      return `${symbol}`;
     }
     return `^/(.${symbol}${offset !== 0 ? ` + ${offset}` : ""}${
       this.stackPtr !== 0 ? ` - ${this.stackPtr}` : ""
@@ -2500,6 +2542,12 @@ void AT(0b00000100) __mute_mask_${symbol};`
   // --------------------------------------------------------------------------
   // Timing
 
+  idle = () => {
+    this._addComment("Idle");
+    this._idle();
+    this._addNL();
+  };
+
   nextFrameAwait = () => {
     this.wait(1);
   };
@@ -2894,7 +2942,10 @@ void AT(0b00000100) __mute_mask_${symbol};`
   // --------------------------------------------------------------------------
   // Call Script
 
-  callScript = (scriptId: string, input: Dictionary<string>) => {
+  callScript = (
+    scriptId: string,
+    input: Dictionary<string | ScriptBuilderUnionValue>
+  ) => {
     const { customEvents } = this.options;
     const customEvent = customEvents.find((ce) => ce.id === scriptId);
 
@@ -2916,12 +2967,31 @@ void AT(0b00000100) __mute_mask_${symbol};`
     const actorArgs = Object.values(customEvent.actors);
     const variableArgs = Object.values(customEvent.variables);
 
+    const constArgLookup: Record<number, string> = {};
+    if (variableArgs) {
+      for (const variableArg of variableArgs.reverse()) {
+        if (variableArg) {
+          const variableValue = input?.[`$variable[${variableArg.id}]$`] || "";
+          if (
+            typeof variableValue !== "string" &&
+            variableValue.type === "number"
+          ) {
+            const argRef = this._declareLocal("arg", 1, true);
+            this._setConst(this._localRef(argRef), variableValue.value);
+            constArgLookup[variableValue.value] = argRef;
+          }
+        }
+      }
+    }
+
     if (actorArgs) {
       for (const actorArg of actorArgs.reverse()) {
         if (actorArg) {
           const actorValue = input?.[`$actor[${actorArg.id}]$`] || "";
-          const actorIndex = this.getActorIndex(actorValue);
-          this._stackPushConst(actorIndex, `Actor ${actorArg.id}`);
+          if (typeof actorValue === "string") {
+            const actorIndex = this.getActorIndex(actorValue);
+            this._stackPushConst(actorIndex, `Actor ${actorArg.id}`);
+          }
         }
       }
     }
@@ -2930,8 +3000,21 @@ void AT(0b00000100) __mute_mask_${symbol};`
       for (const variableArg of variableArgs.reverse()) {
         if (variableArg) {
           const variableValue = input?.[`$variable[${variableArg.id}]$`] || "";
-          const variableAlias = this.getVariableAlias(variableValue);
-          this._stackPushConst(variableAlias, `Variable ${variableArg.id}`);
+          if (typeof variableValue === "string") {
+            const variableAlias = this.getVariableAlias(variableValue);
+            this._stackPushConst(variableAlias, `Variable ${variableArg.id}`);
+          } else if (variableValue && variableValue.type === "number") {
+            // Arg is union number
+            const argRef = constArgLookup[variableValue.value];
+            this._stackPushReference(
+              this._localRef(argRef),
+              `Variable ${variableArg.id}`
+            );
+          } else if (variableValue && variableValue.type === "variable") {
+            // Arg is a union variable
+            const variableAlias = this.getVariableAlias(variableValue.value);
+            this._stackPushConst(variableAlias, `Variable ${variableArg.id}`);
+          }
         }
       }
     }
@@ -2959,8 +3042,8 @@ void AT(0b00000100) __mute_mask_${symbol};`
     }
 
     const argLookup: {
-      actor: Dictionary<string>;
-      variable: Dictionary<string>;
+      actor: Dictionary<ScriptBuilderVariable>;
+      variable: Dictionary<ScriptBuilderVariable>;
     } = {
       actor: {},
       variable: {},
@@ -2972,10 +3055,17 @@ void AT(0b00000100) __mute_mask_${symbol};`
     const argsLen = actorArgs.length + variableArgs.length;
 
     let numArgs = argsLen - 1;
-    const registerArg = (type: "actor" | "variable", value: string) => {
+    const registerArg = (
+      type: "actor" | "variable",
+      indirect: boolean,
+      value: string
+    ) => {
       if (!argLookup[type][value]) {
-        const newArg = `SCRIPT_ARG_${numArgs}_${type}`.toUpperCase();
-        argLookup[type][value] = newArg;
+        const newArg = `.SCRIPT_ARG_${numArgs}_${type}`.toUpperCase();
+        argLookup[type][value] = {
+          type: indirect ? "indirect" : "variable",
+          symbol: newArg,
+        };
         numArgs--;
       }
       return argLookup[type][value];
@@ -2997,7 +3087,7 @@ void AT(0b00000100) __mute_mask_${symbol};`
     if (actorArgs) {
       for (const actorArg of actorArgs.reverse()) {
         if (actorArg) {
-          registerArg("actor", actorArg.id);
+          registerArg("actor", false, actorArg.id);
         }
       }
     }
@@ -3005,7 +3095,7 @@ void AT(0b00000100) __mute_mask_${symbol};`
     if (variableArgs) {
       for (const variableArg of variableArgs.reverse()) {
         if (variableArg) {
-          registerArg("variable", variableArg.id);
+          registerArg("variable", true, variableArg.id);
         }
       }
     }
@@ -3198,6 +3288,10 @@ void AT(0b00000100) __mute_mask_${symbol};`
       return variable;
     }
 
+    if (variable === "") {
+      variable = "L0";
+    }
+
     // Lookup args if in V0-9 format
     if (variable.match(/^V[0-9]$/)) {
       const key = variable.replace(/V/, "");
@@ -3205,7 +3299,7 @@ void AT(0b00000100) __mute_mask_${symbol};`
       if (!arg) {
         throw new Error("Cant find arg: " + arg);
       }
-      return arg;
+      return arg.symbol;
     }
 
     const {
@@ -3990,6 +4084,22 @@ void AT(0b00000100) __mute_mask_${symbol};`
     this._addNL();
   };
 
+  whileExpression = (
+    expression: string,
+    truePath: ScriptEvent[] | ScriptBuilderPathFunction = []
+  ) => {
+    const loopId = this.getNextLabel();
+    const endLabel = this.getNextLabel();
+    this._addComment(`While ${this._expressionToHumanReadable(expression)}`);
+    this._label(loopId);
+    this._stackPushEvaluatedExpression(expression);
+    this._ifConst(".EQ", ".ARG0", 0, endLabel, 1);
+    this._compilePath(truePath);
+    this._jump(loopId);
+    this._label(endLabel);
+    this._addNL();
+  };
+
   ifVariableTrue = (
     variable: string,
     truePath: ScriptEvent[] | ScriptBuilderPathFunction = [],
@@ -4465,18 +4575,21 @@ void AT(0b00000100) __mute_mask_${symbol};`
     const reserveMem = this._calcLocalsSize();
 
     const scriptArgVars = Object.values(this.options.argLookup.variable)
-      .map((symbol, index) => `\n.${symbol} = -${3 + reserveMem + index}`)
+      .map((arg, index) =>
+        arg ? `\n${arg.symbol} = -${3 + reserveMem + index}` : ""
+      )
       .join("");
 
     const scriptArgActors = Object.values(this.options.argLookup.actor)
-      .map(
-        (symbol, index) =>
-          `\n.${symbol} = -${
-            3 +
-            reserveMem +
-            index +
-            Object.keys(this.options.argLookup.variable).length
-          }`
+      .map((arg, index) =>
+        arg
+          ? `\n${arg.symbol} = -${
+              3 +
+              reserveMem +
+              index +
+              Object.keys(this.options.argLookup.variable).length
+            }`
+          : ""
       )
       .join("");
 
