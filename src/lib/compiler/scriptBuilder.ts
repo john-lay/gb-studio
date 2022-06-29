@@ -68,14 +68,20 @@ type ScriptBuilderEntityType = "scene" | "actor" | "trigger";
 
 type ScriptBuilderStackVariable = string | number;
 
-type ScriptBuilderVariable = {
+type ScriptBuilderVariableData = {
   type: "variable" | "indirect";
   symbol: string;
 };
 
+type ScriptBuilderSimpleVariable = string | number;
+
+type ScriptBuilderVariable =
+  | ScriptBuilderSimpleVariable
+  | ScriptBuilderVariableData;
+
 interface ScriptBuilderFunctionArgLookup {
-  actor: Dictionary<ScriptBuilderVariable>;
-  variable: Dictionary<ScriptBuilderVariable>;
+  actor: Dictionary<ScriptBuilderVariableData>;
+  variable: Dictionary<ScriptBuilderVariableData>;
 }
 
 interface ScriptBuilderOptions {
@@ -728,9 +734,12 @@ class ScriptBuilder {
     this._addCmd("VM_SET_INDIRECT", location, value);
   };
 
-  _setVariable = (variable: string, value: ScriptBuilderStackVariable) => {
+  _setVariable = (
+    variable: ScriptBuilderVariable,
+    value: ScriptBuilderStackVariable
+  ) => {
     const variableAlias = this.getVariableAlias(variable);
-    if (this._isArg(variableAlias)) {
+    if (this._isIndirectVariable(variable)) {
       this._setInd(this._argRef(variableAlias), value);
     } else {
       this._set(variableAlias, value);
@@ -748,31 +757,34 @@ class ScriptBuilder {
     }
   };
 
-  _setVariableToVariable = (variableA: string, variableB: string) => {
+  _setVariableToVariable = (
+    variableA: ScriptBuilderVariable,
+    variableB: ScriptBuilderVariable
+  ) => {
     const variableAliasA = this.getVariableAlias(variableA);
     const variableAliasB = this.getVariableAlias(variableB);
 
     let dest = variableAliasB;
 
-    if (this._isArg(variableAliasB)) {
+    if (this._isIndirectVariable(variableB)) {
       this._stackPushInd(this._argRef(variableAliasB));
       dest = ".ARG0";
     }
 
-    if (this._isArg(variableAliasA)) {
+    if (this._isIndirectVariable(variableA)) {
       this._setInd(this._argRef(variableAliasA), dest);
     } else {
       this._set(variableAliasA, dest);
     }
 
-    if (this._isArg(variableAliasB)) {
+    if (this._isIndirectVariable(variableB)) {
       this._stackPop(1);
     }
   };
 
   _setVariableConst = (variable: string, value: ScriptBuilderStackVariable) => {
     const variableAlias = this.getVariableAlias(variable);
-    if (this._isArg(variableAlias)) {
+    if (this._isIndirectVariable(variable)) {
       const valueTmpRef = this._declareLocal("value_tmp", 1, true);
       this._setConst(this._localRef(valueTmpRef), value);
       this._setInd(this._argRef(variableAlias), this._localRef(valueTmpRef));
@@ -1021,9 +1033,9 @@ class ScriptBuilder {
         stack.push(0);
         return rpn;
       },
-      refVariable: (variable: string) => {
+      refVariable: (variable: ScriptBuilderVariable) => {
         const variableAlias = this.getVariableAlias(variable);
-        if (this._isArg(variableAlias)) {
+        if (this._isIndirectVariable(variable)) {
           return rpn.refInd(this._argRef(variableAlias));
         } else {
           return rpn.ref(variableAlias);
@@ -1723,9 +1735,23 @@ extern void __mute_mask_${symbol};
     this._addCmd("VM_STOP");
   };
 
-  _isArg = (variable: ScriptBuilderStackVariable) => {
+  _isArg = (
+    variable: ScriptBuilderStackVariable | ScriptBuilderVariableData
+  ) => {
     return typeof variable === "string" && variable.startsWith("SCRIPT_ARG");
   };
+
+  _isVariableData(
+    x: ScriptBuilderStackVariable | ScriptBuilderVariableData
+  ): x is ScriptBuilderVariableData {
+    return typeof x === "object" && "symbol" in x;
+  }
+
+  _isIndirectVariable(
+    x: ScriptBuilderStackVariable | ScriptBuilderVariableData
+  ): boolean {
+    return this._isVariableData(x) && x.type === "indirect";
+  }
 
   _declareLocal = (
     symbol: string,
@@ -1765,7 +1791,7 @@ extern void __mute_mask_${symbol};
     if (this.stackPtr === 0 && offset === 0) {
       return `${symbol}`;
     }
-    return `^/(.${symbol}${offset !== 0 ? ` + ${offset}` : ""}${
+    return `^/(${symbol}${offset !== 0 ? ` + ${offset}` : ""}${
       this.stackPtr !== 0 ? ` - ${this.stackPtr}` : ""
     })/`;
   };
@@ -1859,34 +1885,40 @@ extern void __mute_mask_${symbol};
   // --------------------------------------------------------------------------
   // Actors
 
-  setActorId = (addr: string, id: string) => {
-    const newIndex = this.getActorIndex(id);
-    if (typeof newIndex === "number") {
+  setActorId = (addr: string, id: ScriptBuilderVariable) => {
+    if (typeof id === "number") {
+      this.actorIndex = id;
+      this._setConst(addr, this.actorIndex);
+    } else if (typeof id === "string") {
+      const newIndex = this.getActorIndex(id);
       this.actorIndex = newIndex;
       this._setConst(addr, this.actorIndex);
     } else {
       this.actorIndex = -1;
-      this._set(addr, this._argRef(newIndex));
+      this._set(addr, this._argRef(id.symbol));
     }
   };
 
-  actorSetById = (id: string) => {
+  actorSetById = (id: ScriptBuilderVariable) => {
     const actorRef = this._declareLocal("actor", 4);
     this.setActorId(this._localRef(actorRef), id);
   };
 
-  actorPushById = (id: string) => {
-    const newIndex = this.getActorIndex(id);
-    if (typeof newIndex === "number") {
+  actorPushById = (id: ScriptBuilderVariable) => {
+    if (typeof id === "number") {
+      this.actorIndex = id;
+      this._stackPushConst(this.actorIndex);
+    } else if (typeof id === "string") {
+      const newIndex = this.getActorIndex(id);
       this.actorIndex = newIndex;
       this._stackPushConst(this.actorIndex);
     } else {
       this.actorIndex = -1;
-      this._stackPush(this._argRef(newIndex));
+      this._stackPush(this._argRef(id.symbol));
     }
   };
 
-  actorSetActive = (id: string) => {
+  actorSetActive = (id: ScriptBuilderVariable) => {
     this._addComment("Actor Set Active");
     this.actorSetById(id);
     this._addNL();
@@ -2969,7 +3001,7 @@ extern void __mute_mask_${symbol};
 
     const constArgLookup: Record<number, string> = {};
     if (variableArgs) {
-      for (const variableArg of variableArgs.reverse()) {
+      for (const variableArg of variableArgs) {
         if (variableArg) {
           const variableValue = input?.[`$variable[${variableArg.id}]$`] || "";
           if (
@@ -3042,8 +3074,8 @@ extern void __mute_mask_${symbol};
     }
 
     const argLookup: {
-      actor: Dictionary<ScriptBuilderVariable>;
-      variable: Dictionary<ScriptBuilderVariable>;
+      actor: Dictionary<ScriptBuilderVariableData>;
+      variable: Dictionary<ScriptBuilderVariableData>;
     } = {
       actor: {},
       variable: {},
@@ -3260,10 +3292,7 @@ extern void __mute_mask_${symbol};
   // --------------------------------------------------------------------------
   // Variables
 
-  getActorIndex = (id: string): string | number => {
-    if (this._isArg(id)) {
-      return id;
-    }
+  getActorIndex = (id: string): number => {
     const { entity, entityType, scene } = this.options;
 
     if (id === "player" || (id === "$self$" && entityType !== "actor")) {
@@ -3283,13 +3312,17 @@ extern void __mute_mask_${symbol};
     return index;
   };
 
-  getVariableAlias = (variable = "0"): string => {
-    if (this._isArg(variable)) {
-      return variable;
+  getVariableAlias = (variable: ScriptBuilderVariable = "0"): string => {
+    if (this._isVariableData(variable)) {
+      return variable.symbol;
     }
 
     if (variable === "") {
       variable = "L0";
+    }
+
+    if (typeof variable === "number") {
+      variable = String(variable);
     }
 
     // Lookup args if in V0-9 format
@@ -3362,7 +3395,7 @@ extern void __mute_mask_${symbol};
     return newAlias;
   };
 
-  variableInc = (variable: string) => {
+  variableInc = (variable: ScriptBuilderVariable) => {
     this._addComment("Variable Increment By 1");
     this._rpn() //
       .refVariable(variable)
@@ -3374,7 +3407,7 @@ extern void __mute_mask_${symbol};
     this._addNL();
   };
 
-  variableDec = (variable: string) => {
+  variableDec = (variable: ScriptBuilderVariable) => {
     this._addComment("Variable Decrement By 1");
     this._rpn() //
       .refVariable(variable)
@@ -3404,7 +3437,10 @@ extern void __mute_mask_${symbol};
     this._addNL();
   };
 
-  variableCopy = (setVariable: string, otherVariable: string) => {
+  variableCopy = (
+    setVariable: ScriptBuilderVariable,
+    otherVariable: ScriptBuilderVariable
+  ) => {
     this._addComment("Variable Copy");
     this._setVariableToVariable(setVariable, otherVariable);
     this._addNL();
