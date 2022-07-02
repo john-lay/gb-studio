@@ -2215,6 +2215,7 @@ const refreshCustomEventArgs: CaseReducer<
             variables[variable] = {
               id: variable,
               name: oldVariables[variable]?.name || `Variable ${letter}`,
+              passByReference: oldVariables[variable]?.passByReference || true,
             };
           };
           const variable = args[arg];
@@ -2263,6 +2264,8 @@ const refreshCustomEventArgs: CaseReducer<
               variables[variable] = {
                 id: variable,
                 name: oldVariables[variable]?.name || `Variable ${letter}`,
+                passByReference:
+                  oldVariables[variable]?.passByReference || true,
               };
             });
           }
