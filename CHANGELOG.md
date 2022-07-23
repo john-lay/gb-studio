@@ -19,7 +19,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added event Actor Move Cancel to cancel any scripted movement currently running for a given actor [@um3k](https://github.com/um3k)
 - Add sound effects file support reading WAV (.wav), VGM (.vgm, .vgz) and FXHammer (.sav) files from assets/sounds folder
 - Add support for setting sound effects priority [untoxa](https://github.com/untoxa)
+- Add ability to generate Emulicious debugging files [@RichardULZ](https://github.com/RichardULZ) 
 - Add tooltips to Song Editor tools [DeerTears](https://github.com/DeerTears)
+- Added Piano Roll selection tool (also accessible by holding Shift) allowing multiple notes to be dragged at once [@pau-tomas](https://github.com/pau-tomas)
+- Added copy paste support for notes in music editor with OpenMPT/hUGETracker compatible clipboard format [@pau-tomas](https://github.com/pau-tomas)
+- Added ability to select multiple cells in tracker editor by holding shift while pressing arrow keys [@pau-tomas](https://github.com/pau-tomas)
+- Added keyboard shortcut (Space bar) to toggle play/pause in music editor [@pau-tomas](https://github.com/pau-tomas)
+- Add Idle event to wait for a single frame using VM_IDLE
+- Add "Loop For" and "Loop While" events
+- Add ability to pass number values as parameters when calling scripts [@pau-tomas](https://github.com/pau-tomas)
+- Add ability to access global variables from within scripts [@pau-tomas](https://github.com/pau-tomas)
+- Add ability to set script parameters to be passed by reference or by value (previously was always by reference)
+- Add ability to use pixel values for actor and camera movement [@Y0UR-U5ERNAME](https://github.com/Y0UR-U5ERNAME)
+- Add ability to view & change units used for time and distances inline within number and variable inputs
+- Add event "If Actor Distance From Actor" to check if one actor is within a certain range of another [@juliusl](https://github.com/juliusl)
+- Add event "Start Actor's 'On Update' Script" [@patrickmollohan](https://github.com/patrickmollohan)
+- Add "Keep Running While Offscreen" option to actor "On Update" scripts
+- Add ability to prevent projectiles being destroyed on collision and to prevent projectile animation from looping [untoxa](https://github.com/untoxa)
 
 ### Changed
 
@@ -34,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update hUGEDriver [untoxa](https://github.com/untoxa)
 - Hide/show actor now ONLY hides/shows, update scripts & collisions are not affected (existing hide/show events migrated to deactivate/activate for compatibility)
 - Updated Simplified Chinese localisation. [@wcxu21](https://github.com/wcxu21) 
+- Updated German localisation. [@attackemartin](https://github.com/attackemartin)
+- List of "Variable Uses" now calculated in background thread to reduce pause while reading large projects
+- Timer, input and music scripts set from within a custom script no longer allow the script parameters to be used as they were not working, global variables can now be used instead.
+- Optimised actors_update() and vm_actor_move_to() to improve CPU usage
 
 ### Fixed
 
@@ -47,11 +67,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated 32-bit Windows app to use correct 32-bit GBDK-2020 (again) [untoxa](https://github.com/untoxa)
 - Fixed issue where relative actor movement on left or top edge of scene would wrap around scene [@um3k](https://github.com/um3k)
 - Fix issue where soft reset could lead to UI tiles over scene tiles [untoxa](https://github.com/untoxa)
+- Fix issue where undoing from music editor would also undo global project changes [@pau-tomas](https://github.com/pau-tomas)
 - Fix compiling noise macros for UGE songs [@pau-tomas](https://github.com/pau-tomas)
 - Fix setting music editor preview start position to a different pattern [@pau-tomas](https://github.com/pau-tomas)
 - Fix issue where projectiles launched at >224 degrees would be facing in wrong direction [@john-lay](https://github.com/john-lay)
 - Restore previously playing music when loading game data
+- Fix issue where new patterns added to songs in music editor would not be played until song was reloaded [@pau-tomas](https://github.com/pau-tomas)
 - Fix an issue where fading out mid-scene would cause game to hang [untoxa](https://github.com/untoxa)
+- Fix copying trigger scripts [@pau-tomas](https://github.com/pau-tomas)
+- Fix issue where selecting "Wait until finished" on sound effect events could cause broken scripts containing decimal wait values
 
 ### Removed
 

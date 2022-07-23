@@ -21,8 +21,8 @@ import { toValidSymbol } from "lib/helpers/symbols";
 
 const indexById = indexBy("id");
 
-export const LATEST_PROJECT_VERSION = "3.0.0";
-export const LATEST_PROJECT_MINOR_VERSION = "0";
+export const LATEST_PROJECT_VERSION = "3.1.0";
+export const LATEST_PROJECT_MINOR_VERSION = "2";
 
 const ensureProjectAssetSync = (relativePath, { projectRoot }) => {
   const projectPath = `${projectRoot}/${relativePath}`;
@@ -1552,6 +1552,12 @@ export const migrateFrom300r2To300r3 = (data) => {
         ),
       };
     }),
+    variables: (data.variables || []).map((variable, variableIndex) => {
+      return {
+        ...variable,
+        symbol: toValidSymbol(`var_${variable.name || variableIndex + 1}`),
+      };
+    }),
   };
 };
 
@@ -1663,6 +1669,36 @@ export const migrateFrom300r3To310r1 = (data) => {
             data.customEvents
           )
         ),
+      };
+    }),
+  };
+};
+
+/* Version 3.1.0 r2 updates projectile events to set new fields as true by default
+ */
+export const migrateFrom310r1To310r2Event = (event) => {
+  const migrateMeta = generateMigrateMeta(event);
+  if (event.args && event.command === "EVENT_LAUNCH_PROJECTILE") {
+    return migrateMeta({
+      ...event,
+      args: {
+        ...event.args,
+        loopAnim: true,
+        destroyOnHit: true,
+      },
+    });
+  }
+  return event;
+};
+
+const migrateFrom310r1To310r2Events = (data) => {
+  return {
+    ...data,
+    scenes: mapScenesEvents(data.scenes, migrateFrom310r1To310r2Event),
+    customEvents: (data.customEvents || []).map((customEvent) => {
+      return {
+        ...customEvent,
+        script: mapEvents(customEvent.script, migrateFrom310r1To310r2Event),
       };
     }),
   };
@@ -1783,6 +1819,13 @@ const migrateProject = (project, projectRoot) => {
       data = migrateFrom300r3To310r1(data);
       version = "3.1.0";
       release = "1";
+    }
+  }
+
+  if (version === "3.1.0") {
+    if (release === "0" || release === "1") {
+      data = migrateFrom310r1To310r2Events(data);
+      release = "2";
     }
   }
 
