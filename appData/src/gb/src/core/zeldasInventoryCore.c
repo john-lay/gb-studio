@@ -52,6 +52,25 @@ UBYTE GetBit(UINT16 byte, UINT8 bit)
     return (byte & (1 << bit)) != 0;
 }
 
+void ClearWeaponsTreasuresCache()
+{
+    for (UINT8 i = 0; i < totalWeaponsAvailable; i++)
+    {
+        weapons[i] = 0;
+    }
+    
+    for (UINT8 i = 0; i < totalTreasuresAvailable; i++)
+    {
+        treasures[i] = 0;
+    }
+
+    for (UINT8 i = 0; i < 24; i++)
+    {
+        weaponPanel[i] = 0xC2;
+        treasurePanel[i] = 0xC2;
+    }
+}
+
 // weapons 1-19 = inventory1 (0-15) + inventory2 (0-2)
 // treasures 1-25 = inventory2 (2-15), inventory3 (0-11)
 void IdentifyWeaponsTreasuresFound()
@@ -246,6 +265,7 @@ void InitZeldaInventory()
     SWITCH_ROM(_save);
 
     // initialise the weapon tiles
+    ClearWeaponsTreasuresCache(); // fixes issue with used items (e.g. candle) remaining in inventory
     IdentifyWeaponsTreasuresFound();
     DrawWeaponsTreasures();
 }
