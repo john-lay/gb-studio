@@ -333,8 +333,10 @@ void FindFirstSpellTile() BANKED
     
     // TODO: if the reference spell can't be found the scene never loads!
     tileOffset = 0x00;
-    while (tileOffset == 0) {
-        for (UINT8 i = 0; i < 256; i++)
+    while (tileOffset == 0) 
+    {
+        UINT8 i = 0;
+        do
         {
             if (*spriteMemory[i] == 0xff && *(spriteMemory[i] + 1) == 0xc3 &&
                 *(spriteMemory[i] + 2) == 0xff && *(spriteMemory[i] + 3) == 0x99 &&
@@ -348,7 +350,7 @@ void FindFirstSpellTile() BANKED
                 tileOffset = i;
                 break;
             }
-        }
+        } while (i++ < 255);
     }
 }
 
