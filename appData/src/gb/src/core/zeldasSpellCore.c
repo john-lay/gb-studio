@@ -11,7 +11,7 @@ void InitZeldasSpell()
 {
     UBYTE _save = _current_bank;
     
-    SWITCH_ROM(5);
+    SWITCH_ROM(6);
         LoadSpell(*_spellEquipped);    
     SWITCH_ROM(_save);
 }
