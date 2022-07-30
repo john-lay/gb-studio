@@ -2,7 +2,7 @@
 // find: (0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],0x[0-9A-F][0-9A-F],)
 // replace: $1\n
 
-#pragma bank 5
+#pragma bank 6
 
 #include <gb/gb.h>
 #include "bankdata.h"
@@ -307,7 +307,7 @@ const unsigned char spellBoomerang[] = {
 
 void FindFirstSpellTile() BANKED
 {
-    UINT8 *spriteMemory[128] = {
+    UINT8 *spriteMemory[256] = {
         (UINT8 *)0x8000, (UINT8 *)0x8010, (UINT8 *)0x8020, (UINT8 *)0x8030, (UINT8 *)0x8040, (UINT8 *)0x8050, (UINT8 *)0x8060, (UINT8 *)0x8070, (UINT8 *)0x8080, (UINT8 *)0x8090, (UINT8 *)0x80A0, (UINT8 *)0x80B0, (UINT8 *)0x80C0, (UINT8 *)0x80D0, (UINT8 *)0x80E0, (UINT8 *)0x80F0,
         (UINT8 *)0x8100, (UINT8 *)0x8110, (UINT8 *)0x8120, (UINT8 *)0x8130, (UINT8 *)0x8140, (UINT8 *)0x8150, (UINT8 *)0x8160, (UINT8 *)0x8170, (UINT8 *)0x8180, (UINT8 *)0x8190, (UINT8 *)0x81A0, (UINT8 *)0x81B0, (UINT8 *)0x81C0, (UINT8 *)0x81D0, (UINT8 *)0x81E0, (UINT8 *)0x81F0,
         (UINT8 *)0x8200, (UINT8 *)0x8210, (UINT8 *)0x8220, (UINT8 *)0x8230, (UINT8 *)0x8240, (UINT8 *)0x8250, (UINT8 *)0x8260, (UINT8 *)0x8270, (UINT8 *)0x8280, (UINT8 *)0x8290, (UINT8 *)0x82A0, (UINT8 *)0x82B0, (UINT8 *)0x82C0, (UINT8 *)0x82D0, (UINT8 *)0x82E0, (UINT8 *)0x82F0,
@@ -316,12 +316,25 @@ void FindFirstSpellTile() BANKED
         (UINT8 *)0x8500, (UINT8 *)0x8510, (UINT8 *)0x8520, (UINT8 *)0x8530, (UINT8 *)0x8540, (UINT8 *)0x8550, (UINT8 *)0x8560, (UINT8 *)0x8570, (UINT8 *)0x8580, (UINT8 *)0x8590, (UINT8 *)0x85A0, (UINT8 *)0x85B0, (UINT8 *)0x85C0, (UINT8 *)0x85D0, (UINT8 *)0x85E0, (UINT8 *)0x85F0,
         (UINT8 *)0x8600, (UINT8 *)0x8610, (UINT8 *)0x8620, (UINT8 *)0x8630, (UINT8 *)0x8640, (UINT8 *)0x8650, (UINT8 *)0x8660, (UINT8 *)0x8670, (UINT8 *)0x8680, (UINT8 *)0x8690, (UINT8 *)0x86A0, (UINT8 *)0x86B0, (UINT8 *)0x86C0, (UINT8 *)0x86D0, (UINT8 *)0x86E0, (UINT8 *)0x86F0,
         (UINT8 *)0x8700, (UINT8 *)0x8710, (UINT8 *)0x8720, (UINT8 *)0x8730, (UINT8 *)0x8740, (UINT8 *)0x8750, (UINT8 *)0x8760, (UINT8 *)0x8770, (UINT8 *)0x8780, (UINT8 *)0x8790, (UINT8 *)0x87A0, (UINT8 *)0x87B0, (UINT8 *)0x87C0, (UINT8 *)0x87D0, (UINT8 *)0x87E0, (UINT8 *)0x87F0,
+        // assumed:
+        // 0x8000 - 0x87FF was for sprites,
+        // 0x9000 - 0x97FF was for tiles,
+        // 0x8800 - 0x8FFF was for additional tiles,
+        // but it appears this middle block (0x8800 - 0x8FFF) is spare VRAM for either
+        (UINT8 *)0x8800, (UINT8 *)0x8810, (UINT8 *)0x8820, (UINT8 *)0x8830, (UINT8 *)0x8840, (UINT8 *)0x8850, (UINT8 *)0x8860, (UINT8 *)0x8870, (UINT8 *)0x8880, (UINT8 *)0x8890, (UINT8 *)0x88A0, (UINT8 *)0x88B0, (UINT8 *)0x88C0, (UINT8 *)0x88D0, (UINT8 *)0x88E0, (UINT8 *)0x88F0,
+        (UINT8 *)0x8900, (UINT8 *)0x8910, (UINT8 *)0x8920, (UINT8 *)0x8930, (UINT8 *)0x8940, (UINT8 *)0x8950, (UINT8 *)0x8960, (UINT8 *)0x8970, (UINT8 *)0x8980, (UINT8 *)0x8990, (UINT8 *)0x89A0, (UINT8 *)0x89B0, (UINT8 *)0x89C0, (UINT8 *)0x89D0, (UINT8 *)0x89E0, (UINT8 *)0x89F0,
+        (UINT8 *)0x8A00, (UINT8 *)0x8A10, (UINT8 *)0x8A20, (UINT8 *)0x8A30, (UINT8 *)0x8A40, (UINT8 *)0x8A50, (UINT8 *)0x8A60, (UINT8 *)0x8A70, (UINT8 *)0x8A80, (UINT8 *)0x8A90, (UINT8 *)0x8AA0, (UINT8 *)0x8AB0, (UINT8 *)0x8AC0, (UINT8 *)0x8AD0, (UINT8 *)0x8AE0, (UINT8 *)0x8AF0,
+        (UINT8 *)0x8B00, (UINT8 *)0x8B10, (UINT8 *)0x8B20, (UINT8 *)0x8B30, (UINT8 *)0x8B40, (UINT8 *)0x8B50, (UINT8 *)0x8B60, (UINT8 *)0x8B70, (UINT8 *)0x8B80, (UINT8 *)0x8B90, (UINT8 *)0x8BA0, (UINT8 *)0x8BB0, (UINT8 *)0x8BC0, (UINT8 *)0x8BD0, (UINT8 *)0x8BE0, (UINT8 *)0x8BF0,
+        (UINT8 *)0x8C00, (UINT8 *)0x8C10, (UINT8 *)0x8C20, (UINT8 *)0x8C30, (UINT8 *)0x8C40, (UINT8 *)0x8C50, (UINT8 *)0x8C60, (UINT8 *)0x8C70, (UINT8 *)0x8C80, (UINT8 *)0x8C90, (UINT8 *)0x8CA0, (UINT8 *)0x8CB0, (UINT8 *)0x8CC0, (UINT8 *)0x8CD0, (UINT8 *)0x8CE0, (UINT8 *)0x8CF0,
+        (UINT8 *)0x8D00, (UINT8 *)0x8D10, (UINT8 *)0x8D20, (UINT8 *)0x8D30, (UINT8 *)0x8D40, (UINT8 *)0x8D50, (UINT8 *)0x8D60, (UINT8 *)0x8D70, (UINT8 *)0x8D80, (UINT8 *)0x8D90, (UINT8 *)0x8DA0, (UINT8 *)0x8DB0, (UINT8 *)0x8DC0, (UINT8 *)0x8DD0, (UINT8 *)0x8DE0, (UINT8 *)0x8DF0,
+        (UINT8 *)0x8E00, (UINT8 *)0x8E10, (UINT8 *)0x8E20, (UINT8 *)0x8E30, (UINT8 *)0x8E40, (UINT8 *)0x8E50, (UINT8 *)0x8E60, (UINT8 *)0x8E70, (UINT8 *)0x8E80, (UINT8 *)0x8E90, (UINT8 *)0x8EA0, (UINT8 *)0x8EB0, (UINT8 *)0x8EC0, (UINT8 *)0x8ED0, (UINT8 *)0x8EE0, (UINT8 *)0x8EF0,
+        (UINT8 *)0x8F00, (UINT8 *)0x8F10, (UINT8 *)0x8F20, (UINT8 *)0x8F30, (UINT8 *)0x8F40, (UINT8 *)0x8F50, (UINT8 *)0x8F60, (UINT8 *)0x8F70, (UINT8 *)0x8F80, (UINT8 *)0x8F90, (UINT8 *)0x8FA0, (UINT8 *)0x8FB0, (UINT8 *)0x8FC0, (UINT8 *)0x8FD0, (UINT8 *)0x8FE0, (UINT8 *)0x8FF0,
     };
     
-    // TODO: if the reference spell can't be find the scene never loads!
+    // TODO: if the reference spell can't be found the scene never loads!
     tileOffset = 0x00;
     while (tileOffset == 0) {
-        for (UINT8 i = 0; i < 128; i++)
+        for (UINT8 i = 0; i < 256; i++)
         {
             if (*spriteMemory[i] == 0xff && *(spriteMemory[i] + 1) == 0xc3 &&
                 *(spriteMemory[i] + 2) == 0xff && *(spriteMemory[i] + 3) == 0x99 &&
@@ -342,7 +355,7 @@ void FindFirstSpellTile() BANKED
 void LoadSpell(UINT16 equipped) BANKED
 {
     FindFirstSpellTile();
-    
+
     switch (equipped) {
         case ZELDA_WEAPON_BOWANDARROW:
             set_sprite_data(tileOffset, 12, spellArrow);
