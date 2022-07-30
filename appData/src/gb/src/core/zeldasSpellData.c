@@ -333,10 +333,10 @@ void FindFirstSpellTile() BANKED
     
     // TODO: if the reference spell can't be found the scene never loads!
     tileOffset = 0x00;
+    UINT8 tries = 3;
     while (tileOffset == 0) 
     {
         UINT8 i = 0;
-        UINT8 tries = 3;
         for (UINT8 i = 0; i < 128; i++)
         {
             if (*spriteMemory[i] == 0xff && *(spriteMemory[i] + 1) == 0xc3 &&
@@ -353,7 +353,7 @@ void FindFirstSpellTile() BANKED
             }
         } 
 
-        if (tries == 0) 
+        if (tries == 0)
         {
             // search extended VRAM search
             i = 128;
@@ -371,12 +371,12 @@ void FindFirstSpellTile() BANKED
                     tileOffset = i;
                     break;
                 }
-            } while (i++ < 255);
-        } else 
+            } while (i++ != 255);
+        } 
+        else 
         {
             tries--;
         }
-        
     }
 }
 
