@@ -6,6 +6,6 @@
 /**
  * Set sprite data of reference spell based on weapon equipped
  */
-void LoadSpell(UINT16 equipped) BANKED;
+void LoadSpell(UINT16 equipped, UBYTE useDeepVramSearch) BANKED;
 
 #endif
