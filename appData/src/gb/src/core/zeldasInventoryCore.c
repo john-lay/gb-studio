@@ -47,9 +47,9 @@ unsigned char treasurePanel[] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2, 0xC2,
 unsigned char equippedPanel[] = {0xC2, 0xC2, 
                                  0xC2, 0xC2};
 
-UBYTE GetBit(UINT16 byte, UINT8 bit)
+UBYTE GetBit(UINT16 word, UINT8 bit)
 {
-    return (byte & (1 << bit)) != 0;
+    return (word & (1 << bit)) != 0;
 }
 
 void ClearWeaponsTreasuresCache()
