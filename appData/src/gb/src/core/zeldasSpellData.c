@@ -305,7 +305,7 @@ const unsigned char spellBoomerang[] = {
 0x17,0x18,0x0B,0x0C,0x05,0x06,0x03,0x03,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 };
 
-void FindFirstSpellTile() BANKED
+void FindFirstSpellTile(UBYTE useDeepVramSearch) BANKED
 {
     UINT8 *spriteMemory[256] = {
         (UINT8 *)0x8000, (UINT8 *)0x8010, (UINT8 *)0x8020, (UINT8 *)0x8030, (UINT8 *)0x8040, (UINT8 *)0x8050, (UINT8 *)0x8060, (UINT8 *)0x8070, (UINT8 *)0x8080, (UINT8 *)0x8090, (UINT8 *)0x80A0, (UINT8 *)0x80B0, (UINT8 *)0x80C0, (UINT8 *)0x80D0, (UINT8 *)0x80E0, (UINT8 *)0x80F0,
@@ -353,37 +353,39 @@ void FindFirstSpellTile() BANKED
             }
         } 
 
-        if (tries == 0)
+        if (useDeepVramSearch)
         {
-            // search extended VRAM search
-            i = 128;
-            do
+            if (tries == 0)
             {
-                if (*spriteMemory[i] == 0xff && *(spriteMemory[i] + 1) == 0xc3 &&
-                    *(spriteMemory[i] + 2) == 0xff && *(spriteMemory[i] + 3) == 0x99 &&
-                    *(spriteMemory[i] + 4) == 0xff && *(spriteMemory[i] + 5) == 0x99 &&
-                    *(spriteMemory[i] + 6) == 0xff && *(spriteMemory[i] + 7) == 0xc1 &&
-                    *(spriteMemory[i] + 8) == 0xff && *(spriteMemory[i] + 9) == 0xf9 &&
-                    *(spriteMemory[i] + 10) == 0xff && *(spriteMemory[i] + 11) == 0x99 &&
-                    *(spriteMemory[i] + 12) == 0xff && *(spriteMemory[i] + 13) == 0xc3 &&
-                    *(spriteMemory[i] + 14) == 0xff && *(spriteMemory[i] + 15) == 0xff)
+                // search extended VRAM search
+                i = 128;
+                do
                 {
-                    tileOffset = i;
-                    break;
-                }
-            } while (i++ != 255);
-        } 
-        else 
-        {
-            tries--;
+                    if (*spriteMemory[i] == 0xff && *(spriteMemory[i] + 1) == 0xc3 &&
+                        *(spriteMemory[i] + 2) == 0xff && *(spriteMemory[i] + 3) == 0x99 &&
+                        *(spriteMemory[i] + 4) == 0xff && *(spriteMemory[i] + 5) == 0x99 &&
+                        *(spriteMemory[i] + 6) == 0xff && *(spriteMemory[i] + 7) == 0xc1 &&
+                        *(spriteMemory[i] + 8) == 0xff && *(spriteMemory[i] + 9) == 0xf9 &&
+                        *(spriteMemory[i] + 10) == 0xff && *(spriteMemory[i] + 11) == 0x99 &&
+                        *(spriteMemory[i] + 12) == 0xff && *(spriteMemory[i] + 13) == 0xc3 &&
+                        *(spriteMemory[i] + 14) == 0xff && *(spriteMemory[i] + 15) == 0xff)
+                    {
+                        tileOffset = i;
+                        break;
+                    }
+                } while (i++ != 255);
+            } 
+            else 
+            {
+                tries--;
+            }
         }
     }
 }
 
-void LoadSpell(UINT16 equipped) BANKED
+void LoadSpell(UINT16 equipped, UBYTE useDeepVramSearch) BANKED
 {
-    FindFirstSpellTile();
-
+    FindFirstSpellTile(useDeepVramSearch);
     switch (equipped) {
         case ZELDA_WEAPON_BOWANDARROW:
             set_sprite_data(tileOffset, 12, spellArrow);
