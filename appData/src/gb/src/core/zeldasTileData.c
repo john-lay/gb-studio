@@ -183,7 +183,7 @@ UBYTE FindAnimationTile() BANKED
     BYTE found = 0;
     while (!found)
     {
-        // look for sea water tile (isolation)
+        // look for sea water tile (standalone)
         if (*(bkgMemory[*_zeldaAnimationTile0]) == sea0a[0] && *(bkgMemory[*_zeldaAnimationTile0] + 1) == sea0a[1]
             && *(bkgMemory[*_zeldaAnimationTile0] + 2) == sea0a[2] && *(bkgMemory[*_zeldaAnimationTile0] + 3) == sea0a[3]
             && *(bkgMemory[*_zeldaAnimationTile0] + 4) == sea0a[4] && *(bkgMemory[*_zeldaAnimationTile0] + 5) == sea0a[5]
@@ -211,7 +211,7 @@ UBYTE FindAnimationTile() BANKED
             animationTile = ZELDA_TILE_ANIMATION_WAVE;
         }
 
-        // look for river water tile (isolation)
+        // look for river water tile (standalone)
         if (*(bkgMemory[*_zeldaAnimationTile0]) == river0[0] && *(bkgMemory[*_zeldaAnimationTile0] + 1) == river0[1]
             && *(bkgMemory[*_zeldaAnimationTile0] + 2) == river0[2] && *(bkgMemory[*_zeldaAnimationTile0] + 3) == river0[3]
             && *(bkgMemory[*_zeldaAnimationTile0] + 4) == river0[4] && *(bkgMemory[*_zeldaAnimationTile0] + 5) == river0[5]
@@ -239,7 +239,7 @@ UBYTE FindAnimationTile() BANKED
             animationTile = ZELDA_TILE_ANIMATION_SEA_RIVER;
         }
 
-        // look for lake water tile
+        // look for lake water tile (standalone)
         if (*(bkgMemory[*_zeldaAnimationTile0]) == lake0[0] && *(bkgMemory[*_zeldaAnimationTile0] + 1) == lake0[1]
             && *(bkgMemory[*_zeldaAnimationTile0] + 2) == lake0[2] && *(bkgMemory[*_zeldaAnimationTile0] + 3) == lake0[3]
             && *(bkgMemory[*_zeldaAnimationTile0] + 4) == lake0[4] && *(bkgMemory[*_zeldaAnimationTile0] + 5) == lake0[5]
@@ -251,6 +251,20 @@ UBYTE FindAnimationTile() BANKED
         {
             found = 1;
             animationTile = ZELDA_TILE_ANIMATION_LAKE;
+        }
+
+        // look for lake water (with river water) tile
+        if (*(bkgMemory[*_zeldaAnimationTile0]) == lake1[0] && *(bkgMemory[*_zeldaAnimationTile0] + 1) == lake1[1]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 2) == lake1[2] && *(bkgMemory[*_zeldaAnimationTile0] + 3) == lake1[3]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 4) == lake1[4] && *(bkgMemory[*_zeldaAnimationTile0] + 5) == lake1[5]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 6) == lake1[6] && *(bkgMemory[*_zeldaAnimationTile0] + 7) == lake1[7]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 8) == lake1[8] && *(bkgMemory[*_zeldaAnimationTile0] + 9) == lake1[9]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 10) == lake1[10] && *(bkgMemory[*_zeldaAnimationTile0] + 11) == lake1[11]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 12) == lake1[12] && *(bkgMemory[*_zeldaAnimationTile0] + 13) == lake1[13]
+            && *(bkgMemory[*_zeldaAnimationTile0] + 14) == lake1[14] && *(bkgMemory[*_zeldaAnimationTile0] + 15) == lake1[15])
+        {
+            found = 1;
+            animationTile = ZELDA_TILE_ANIMATION_LAKE_RIVER;
         }
 
         // look for lava tile
@@ -281,7 +295,7 @@ UBYTE FindAnimationTile() BANKED
             animationTile = ZELDA_TILE_ANIMATION_LAMP;
         }
 
-        // look for torch tile (isolation)
+        // look for torch tile (standalone)
         if (*(bkgMemory[*_zeldaAnimationTile0]) == torch0[0] && *(bkgMemory[*_zeldaAnimationTile0] + 1) == torch0[1]
             && *(bkgMemory[*_zeldaAnimationTile0] + 2) == torch0[2] && *(bkgMemory[*_zeldaAnimationTile0] + 3) == torch0[3]
             && *(bkgMemory[*_zeldaAnimationTile0] + 4) == torch0[4] && *(bkgMemory[*_zeldaAnimationTile0] + 5) == torch0[5]
@@ -481,6 +495,37 @@ void AnimateLake() BANKED
     }
 }
 
+void AnimateLakeRiver() BANKED
+{
+    // compromise of slow moving river (vs fast moving lake)
+    if (IS_FRAME_64) 
+    {
+        switch (frame) 
+        {
+            case 0:
+                set_bkg_data(staticRefTile0, 1, lake1);
+                set_bkg_data(staticRefTile1, 1, river1);
+                frame++;
+                break;
+            case 1:
+                set_bkg_data(staticRefTile0, 1, lake2);
+                set_bkg_data(staticRefTile1, 1, river2);
+                frame++;
+                break;
+            case 2:
+                set_bkg_data(staticRefTile0, 1, lake3);
+                set_bkg_data(staticRefTile1, 1, river3);
+                frame++;
+                break;
+            case 3:
+                set_bkg_data(staticRefTile0, 1, lake0);
+                set_bkg_data(staticRefTile1, 1, river0);
+                frame = 0;
+                break;
+        }
+    }
+}
+
 void AnimateLava() BANKED
 {
     // small, big, smile, dash, smile, big
@@ -661,6 +706,9 @@ void AnimateTile() BANKED
             break;
         case ZELDA_TILE_ANIMATION_LAKE:
             AnimateLake();
+            break;
+        case ZELDA_TILE_ANIMATION_LAKE_RIVER:
+            AnimateLakeRiver();
             break;
         case ZELDA_TILE_ANIMATION_LAVA:
             AnimateLava();
