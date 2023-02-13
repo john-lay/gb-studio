@@ -1,85 +1,37 @@
-# GB Studio
+# GB Studio (for Zelda's Adventure)
 
+A Fork of [GB Studio](https://github.com/chrismaltby/gb-studio) to facilitate the development of [Zelda's Adventure](https://github.com/john-lay/zeldas-adventure).
 
-[![CircleCI](https://circleci.com/gh/chrismaltby/gb-studio/tree/develop.svg?style=shield)](https://circleci.com/gh/chrismaltby/gb-studio/tree/develop)
+Initially forked from GB Studio [3.0.3](https://github.com/chrismaltby/gb-studio/releases/tag/v3.1.0) with the addition of a cherry pick of the [global variables in custom scripts](https://github.com/chrismaltby/gb-studio/pull/1143) feature.
 
-Copyright (c) 2021 Chris Maltby, released under the [MIT license](https://opensource.org/licenses/MIT).
+## Features
+* Custom HUD. Display Health and Rupee across the top of the screen
+* Custom Inventory screen with scrolling carousel
+* Swap projectile sprites on scene load. Allows Zelda to fire 19 different projectiles
+* Animated tiles. e.g. water, lava, torches, etc.
+* In the GB Studio editor, scenes snap to a 20px grid
 
-Twitter: [@maltby](https://www.twitter.com/maltby) 
+There are 2 new scene types to accomodate these changes.
+1. __Zelda's Adventure Template__ enables the HUD, animated tiles and custom projectiles
+2. __Zelda's Adventure Inventory__ enables the scrolling inventory carousel
 
-Reddit: [/r/gbstudio](https://www.reddit.com/r/gbstudio)  
-Discord: [Join Chat](https://discord.gg/bxerKnc)
+![Zelda's Adventure HUD](za-hud.png)
+![Zelda's Adventure Inventory](za-inventory.gif)
 
+# Technical Details
+## Accessing GB Studio variables in C
 
-GB Studio is a quick and easy to use retro adventure game creator for Game Boy available for Mac, Linux and Windows.
-For more information see the [GB Studio](https://www.gbstudio.dev) site
+The modification relies on the ability to interrogate the GB Studio global variables and update the VRAM accordingly.
 
-![GB Studio](gbstudio.gif)
+Thanks to [this issue](https://github.com/chrismaltby/gb-studio/issues/540), for highlighting global variables start at memory location `CC40`.
 
-GB Studio consists of an [Electron](https://electronjs.org/) game builder application and a C based game engine using [GBDK](http://gbdk.sourceforge.net/), music is provided by [GBT Player](https://github.com/AntonioND/gbt-player)
+All the data is stored in banks 5 and 6.
 
 ## Installation
+Clone this repo and follow the GB Studio [installation notes](https://github.com/chrismaltby/gb-studio/blob/develop/README.md#installation)
 
-Download a release for your operating system from the [GB Studio Downloads](https://www.gbstudio.dev/download) page.
+## Build
+See [package.json](https://github.com/john-lay/gb-studio/blob/develop/package.json#L14-L17) for your preferrent OS
 
-Or to run from source, clone this repo then:
-
-- Install latest stable [NodeJS](https://nodejs.org/)
-- Install [Yarn](https://yarnpkg.com/)
-
-```bash
-> cd gb-studio
-> yarn
-> npm start
-```
-
-## GB Studio CLI 
-
-Install GB Studio from source as above then
-
-```bash
-> npm run make:cli
-> yarn link
-# From any folder you can now run gb-studio-cli
-> gb-studio-cli -V
-3.0.0
-> gb-studio-cli --help
-```
-
-### Update the CLI
-
-Pull the latest code and run make:cli again, yarn link is only needed for the first run.
-
-```bash
-> npm run make:cli
-```
-
-### CLI Examples
-
-- **Export Project**
-
-    ```bash
-    > gb-studio-cli export path/to/project.gbsproj out/
-    ```
-    Export GBDK project from gbsproj to out directory
-
-- **Export Data**
-    ```bash
-    > gb-studio-cli export -d path/to/project.gbsproj out/
-    ```
-    Export only src/data and include/data from gbsproj to out directory
-- **Make ROM**
-    ```bash
-    > gb-studio-cli make:rom path/to/project.gbsproj out/game.gb
-    ```
-    Make a ROM file from gbsproj
-- **Make Web**
-    ```bash
-    > gb-studio-cli make:web path/to/project.gbsproj out/
-    ```
-    Make a Web build from gbsproj
-
-## Documentation
-
-[GB Studio Documentation](https://www.gbstudio.dev/docs)
-
+## Modifying spell data
+[Convert png to C array and format using VS Code](https://github.com/john-lay/gb-studio/blob/develop/appData/src/gb/src/core/zeldasSpellData.c#L13-L22)
