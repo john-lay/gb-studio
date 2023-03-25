@@ -71,6 +71,7 @@ import { chunk } from "../helpers/array2";
 import { toProjectileHash } from "./scriptBuilder";
 import {
   calculateAutoFadeEventIdDenormalised,
+  isEmptyScript,
   walkDenormalizedSceneEvents,
   walkDenormalizedScenesEvents,
 } from "lib/helpers/eventHelpers";
@@ -1273,7 +1274,7 @@ const compile = async (
       scriptName = `${entity.symbol}_${scriptTypeCode}`;
 
       if (
-        script.length === 0 &&
+        isEmptyScript(script) &&
         // Generate scene init for empty script if autoFade is not disabled
         (scriptTypeCode !== "init" || scene.autoFadeSpeed === null)
       ) {
